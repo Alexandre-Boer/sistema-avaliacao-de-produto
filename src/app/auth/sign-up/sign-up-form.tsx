@@ -54,10 +54,7 @@ export function SignUpForm() {
   });
 
   return (
-    <form
-      onSubmit={handleSubmit((data) => mutation.mutate(data))}
-      noValidate
-    >
+    <form onSubmit={handleSubmit((data) => mutation.mutate(data))} noValidate>
       <FieldGroup>
         {mutation.isError && (
           <Alert variant="destructive">

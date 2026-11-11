@@ -9,7 +9,9 @@ export default function SignUpPage() {
   return (
     <main className="flex min-h-svh flex-1 flex-col lg:flex-row">
       <section className="flex flex-col justify-between gap-10 bg-primary px-8 py-10 text-primary-foreground lg:w-[44%] lg:px-14 lg:py-14">
-        <p className="text-sm tracking-tight">Sistema de Avaliação de Produto</p>
+        <p className="text-sm tracking-tight">
+          Sistema de Avaliação de Produto
+        </p>
         <h1 className="max-w-md text-3xl font-bold leading-tight tracking-tighter text-balance lg:text-5xl">
           Todo produto merece um julgamento justo.
         </h1>

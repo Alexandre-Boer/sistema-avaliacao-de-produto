@@ -2,14 +2,8 @@ import { z } from "zod";
 
 export const signUpSchema = z
   .object({
-    firstName: z
-      .string()
-      .trim()
-      .min(1, { message: "Informe seu nome" }),
-    lastName: z
-      .string()
-      .trim()
-      .min(1, { message: "Informe seu sobrenome" }),
+    firstName: z.string().trim().min(1, { message: "Informe seu nome" }),
+    lastName: z.string().trim().min(1, { message: "Informe seu sobrenome" }),
     email: z
       .string()
       .trim()
