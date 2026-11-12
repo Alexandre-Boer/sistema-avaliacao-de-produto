@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { SignUpForm } from "@/app/auth/sign-up/sign-up-form";
+import { EvaluationPreview } from "@/components/brand/evaluation-preview";
+import { Wordmark } from "@/components/brand/wordmark";
 
 export const metadata: Metadata = {
   title: "Criar conta — Sistema de Avaliação de Produto",
@@ -8,24 +10,33 @@ export const metadata: Metadata = {
 export default function SignUpPage() {
   return (
     <main className="flex min-h-svh flex-1 flex-col lg:flex-row">
-      <section className="flex flex-col justify-between gap-10 bg-primary px-8 py-10 text-primary-foreground lg:w-[44%] lg:px-14 lg:py-14">
-        <p className="text-sm tracking-tight">
-          Sistema de Avaliação de Produto
-        </p>
-        <h1 className="max-w-md text-3xl font-bold leading-tight tracking-tighter text-balance lg:text-5xl">
-          Todo produto merece um julgamento justo.
-        </h1>
-        <p className="max-w-sm text-sm leading-relaxed opacity-80">
-          Crie sua conta para registrar avaliações com critério e acompanhar os
-          resultados em um só lugar.
-        </p>
+      <section className="brand-panel flex flex-col gap-10 px-6 py-8 lg:w-[46%] lg:justify-between lg:px-14 lg:py-10">
+        <Wordmark />
+
+        <div className="flex flex-col gap-10">
+          <div className="max-w-md">
+            <h1 className="font-display text-3xl font-semibold leading-[1.05] tracking-tight text-balance lg:text-5xl">
+              Todo produto merece um julgamento justo.
+            </h1>
+            <p className="mt-5 max-w-sm text-base leading-relaxed text-white/70">
+              Registre avaliações com critérios claros, compare resultados e
+              decida com base em dados, não em achismo.
+            </p>
+          </div>
+
+          <div className="hidden lg:block">
+            <EvaluationPreview />
+          </div>
+        </div>
       </section>
 
-      <section className="flex flex-1 items-center justify-center px-6 py-12 lg:px-14">
-        <div className="w-full max-w-md">
-          <h2 className="text-2xl font-semibold tracking-tight">Criar conta</h2>
-          <p className="mt-2 mb-8 text-sm text-muted-foreground">
-            Preencha seus dados para começar.
+      <section className="flex flex-1 flex-col justify-center px-6 py-12 lg:px-20 lg:py-16">
+        <div className="mx-auto w-full max-w-[26rem]">
+          <h2 className="font-display text-3xl font-semibold tracking-tight">
+            Criar conta
+          </h2>
+          <p className="mt-2 mb-8 text-base text-muted-foreground">
+            Leva menos de um minuto.
           </p>
           <SignUpForm />
         </div>
