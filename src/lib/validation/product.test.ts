@@ -48,6 +48,49 @@ describe("createProductSchema", () => {
       "Informe uma URL de imagem válida",
     );
   });
+
+  it.each([
+    "javascript:alert(1)",
+    "data:text/html,<p>x</p>",
+    "ftp://loja.com/fone",
+    "mailto:alguem@example.com",
+  ])("rejeita externalLink com esquema que não é http(s): %s", (link) => {
+    expect(
+      createProductSchema.safeParse({ ...valid, externalLink: link }).success,
+    ).toBe(false);
+  });
+
+  it("aceita externalLink http e https", () => {
+    expect(
+      createProductSchema.safeParse({
+        ...valid,
+        externalLink: "http://loja.com/fone",
+      }).success,
+    ).toBe(true);
+  });
+
+  it.each([
+    "http://img.com/fone.jpg",
+    "data:image/png;base64,AAAA",
+    "ftp://img.com/fone.jpg",
+  ])("rejeita imageUrl que não é https: %s", (url) => {
+    expect(
+      createProductSchema.safeParse({ ...valid, imageUrl: url }).success,
+    ).toBe(false);
+  });
+
+  it("rejeita nome e descrição longos demais", () => {
+    expect(
+      createProductSchema.safeParse({ ...valid, name: "a".repeat(201) })
+        .success,
+    ).toBe(false);
+    expect(
+      createProductSchema.safeParse({
+        ...valid,
+        description: "a".repeat(2001),
+      }).success,
+    ).toBe(false);
+  });
 });
 
 describe("listProductsQuerySchema", () => {

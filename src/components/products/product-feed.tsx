@@ -163,17 +163,17 @@ export function ProductFeed({ initialPage }: ProductFeedProps) {
           >
             Tentar novamente
           </Button>
-        ) : isFetchingNextPage ? (
-          <p aria-live="polite" className="text-muted-foreground">
-            Carregando mais produtos…
-          </p>
-        ) : hasNextPage ? (
+        ) : hasNextPage || isFetchingNextPage ? (
+          // O botão continua montado durante a busca para o foco do teclado não se perder.
           <Button
             variant="outline"
-            className="h-9 rounded-md px-4 text-sm"
-            onClick={() => fetchNextPage()}
+            className="h-9 rounded-md px-4 text-sm aria-disabled:opacity-60"
+            aria-disabled={isFetchingNextPage}
+            onClick={() => {
+              if (!isFetchingNextPage) fetchNextPage();
+            }}
           >
-            Carregar mais
+            {isFetchingNextPage ? "Carregando mais produtos…" : "Carregar mais"}
           </Button>
         ) : (
           <p className="text-muted-foreground">Você viu todos os produtos</p>
