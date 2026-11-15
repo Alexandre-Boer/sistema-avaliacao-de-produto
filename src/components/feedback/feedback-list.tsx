@@ -118,7 +118,7 @@ export function FeedbackList({ feedbacks }: { feedbacks: Feedback[] }) {
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                     <p className="font-medium">
-                      {feedback.author.firstName} {feedback.author.lastName}
+                      {`${feedback.author.firstName} ${feedback.author.lastName}`}
                     </p>
                     <time
                       dateTime={feedback.createdAt}
