@@ -1,19 +1,20 @@
-import Link from "next/link";
+import { Suspense } from "react";
 import { Wordmark } from "@/components/brand/wordmark";
-import { Button } from "@/components/ui/button";
+import { UserArea } from "@/components/layout/user-area";
+import { Skeleton } from "@/components/ui/skeleton";
 
 /**
- * Cabeçalho das páginas do site. Placeholder da Fase 0: a feature de Sign-in
- * troca o botão "Entrar" pela área do usuário (avatar e menu) quando há sessão.
+ * Cabeçalho das páginas do site. A marca entra no shell estático; a área do
+ * usuário depende do cookie de sessão e chega por streaming dentro do Suspense.
  */
 export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-4 px-6">
         <Wordmark />
-        <Button asChild variant="outline">
-          <Link href="/auth/sign-in">Entrar</Link>
-        </Button>
+        <Suspense fallback={<Skeleton className="h-9 w-24 rounded-md" />}>
+          <UserArea />
+        </Suspense>
       </div>
     </header>
   );

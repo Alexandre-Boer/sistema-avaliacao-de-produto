@@ -1,4 +1,4 @@
-import { hashPassword } from "@/lib/password";
+import { hashPassword, verifyPassword } from "@/lib/password";
 
 describe("hashPassword", () => {
   it("gera hash bcrypt diferente da senha em texto puro", async () => {
@@ -17,5 +17,17 @@ describe("hashPassword", () => {
     const b = await hashPassword("minha-senha-123");
     expect(a.salt).not.toBe(b.salt);
     expect(a.hash).not.toBe(b.hash);
+  });
+});
+
+describe("verifyPassword", () => {
+  it("verifyPassword aceita a senha correta", async () => {
+    const { hash } = await hashPassword("minha-senha-123");
+    expect(await verifyPassword("minha-senha-123", hash)).toBe(true);
+  });
+
+  it("verifyPassword rejeita senha incorreta", async () => {
+    const { hash } = await hashPassword("minha-senha-123");
+    expect(await verifyPassword("outra-senha", hash)).toBe(false);
   });
 });

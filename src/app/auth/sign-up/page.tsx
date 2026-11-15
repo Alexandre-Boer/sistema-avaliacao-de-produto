@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { SignUpForm } from "@/app/auth/sign-up/sign-up-form";
 import { EvaluationPreview } from "@/components/brand/evaluation-preview";
 import { Wordmark } from "@/components/brand/wordmark";
@@ -39,6 +40,15 @@ export default function SignUpPage() {
             Leva menos de um minuto.
           </p>
           <SignUpForm />
+          <p className="mt-6 text-sm text-muted-foreground">
+            Já tem conta?{" "}
+            <Link
+              href="/auth/sign-in"
+              className="rounded-sm font-medium text-primary underline-offset-4 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring/40"
+            >
+              Entrar
+            </Link>
+          </p>
         </div>
       </section>
     </main>
