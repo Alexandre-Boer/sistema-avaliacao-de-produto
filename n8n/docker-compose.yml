@@ -1,0 +1,31 @@
+# n8n local para automatizar a importação de produtos.
+# Subir:  docker compose -f n8n/docker-compose.yml up -d
+# Abrir:  http://localhost:5678
+name: sap-n8n
+
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:2.47.7
+    container_name: sap-n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - GENERIC_TIMEZONE=America/Sao_Paulo
+      - TZ=America/Sao_Paulo
+      # Acesso por http://localhost, sem HTTPS: o cookie de login não pode exigir Secure.
+      - N8N_SECURE_COOKIE=false
+      - N8N_DIAGNOSTICS_ENABLED=false
+      - N8N_PERSONALIZATION_ENABLED=false
+    extra_hosts:
+      # Permite que o contêiner alcance a aplicação Next.js rodando na máquina
+      # (http://host.docker.internal:3000), inclusive em Linux.
+      - "host.docker.internal:host-gateway"
+    volumes:
+      # Banco interno do n8n (workflows, credenciais, execuções).
+      - n8n_data:/home/node/.n8n
+      # Workflows versionados no repositório, para importar pela CLI.
+      - ./workflows:/workflows:ro
+
+volumes:
+  n8n_data:
