@@ -1,4 +1,5 @@
 import {
+  CREATE_PRODUCT_MAX_BODY_BYTES,
   createProductSchema,
   listProductsQuerySchema,
 } from "@/lib/validation/product";
@@ -25,10 +26,57 @@ export async function GET(request: Request): Promise<Response> {
   }
 }
 
+/**
+ * Lê o corpo como texto, desistindo assim que ele passa de `maxBytes`. Devolve
+ * `null` quando o limite é excedido. O `Content-Length` pode estar ausente ou
+ * mentir, então os bytes são contados durante a leitura.
+ */
+async function readBodyText(
+  request: Request,
+  maxBytes: number,
+): Promise<string | null> {
+  if (!request.body) return "";
+
+  const reader = request.body.getReader();
+  const decoder = new TextDecoder();
+  let received = 0;
+  let text = "";
+
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    received += value.byteLength;
+    if (received > maxBytes) {
+      await reader.cancel();
+      return null;
+    }
+    text += decoder.decode(value, { stream: true });
+  }
+
+  return text + decoder.decode();
+}
+
+function payloadTooLarge(): Response {
+  return Response.json(
+    { error: "Corpo da requisição grande demais" },
+    { status: 413 },
+  );
+}
+
 export async function POST(request: Request): Promise<Response> {
+  // Atalho: quando o cliente declara um tamanho acima do limite, nem lê o corpo.
+  const declaredLength = Number(request.headers.get("content-length"));
+  if (declaredLength > CREATE_PRODUCT_MAX_BODY_BYTES) {
+    return payloadTooLarge();
+  }
+
   let body: unknown;
   try {
-    body = await request.json();
+    const text = await readBodyText(request, CREATE_PRODUCT_MAX_BODY_BYTES);
+    if (text === null) {
+      return payloadTooLarge();
+    }
+    body = JSON.parse(text);
   } catch {
     return Response.json({ error: "Dados inválidos" }, { status: 400 });
   }
