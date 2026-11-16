@@ -49,6 +49,11 @@ describe("getProductById", () => {
     expect(await getProductById("nao-existe")).toBeNull();
   });
 
+  it("devolve null sem consultar o banco quando o id tem o caractere NUL", async () => {
+    expect(await getProductById(String.fromCharCode(0))).toBeNull();
+    expect(fromSpy).not.toHaveBeenCalled();
+  });
+
   it("relança erros do banco", async () => {
     maybeSingleSpy.mockResolvedValueOnce({
       data: null,

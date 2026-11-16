@@ -1,18 +1,26 @@
 import { POST } from "@/app/api/v1/products/[id]/feedbacks/route";
 import { getSession } from "@/lib/session";
 import {
+  AccountNotFoundError,
   createFeedback,
+  DuplicateFeedbackError,
   ProductNotFoundError,
 } from "@/server/feedbacks/create-feedback";
 
-vi.mock("@/lib/session", () => ({
-  getSession: vi.fn(),
-}));
+vi.mock("@/lib/session", async (importOriginal) => {
+  const original = await importOriginal<typeof import("@/lib/session")>();
+  return {
+    serializeClearedSessionCookie: original.serializeClearedSessionCookie,
+    getSession: vi.fn(),
+  };
+});
 
 vi.mock("@/server/feedbacks/create-feedback", async (importOriginal) => {
   const original =
     await importOriginal<typeof import("@/server/feedbacks/create-feedback")>();
   return {
+    AccountNotFoundError: original.AccountNotFoundError,
+    DuplicateFeedbackError: original.DuplicateFeedbackError,
     ProductNotFoundError: original.ProductNotFoundError,
     createFeedback: vi.fn(),
   };
@@ -111,6 +119,54 @@ describe("POST /api/v1/products/[id]/feedbacks", () => {
 
     expect(res.status).toBe(404);
     expect(await res.json()).toEqual({ error: "Produto não encontrado" });
+  });
+
+  it("retorna 400 quando o comentário tem o caractere NUL", async () => {
+    getSessionMock.mockResolvedValueOnce(session);
+
+    const res = await POST(
+      post("p1", { score: 5, comment: `Bom${String.fromCharCode(0)}` }),
+      ctx("p1"),
+    );
+
+    expect(res.status).toBe(400);
+    expect(createFeedbackMock).not.toHaveBeenCalled();
+  });
+
+  it("retorna 400 quando o comentário só tem caracteres de largura zero", async () => {
+    getSessionMock.mockResolvedValueOnce(session);
+
+    const res = await POST(
+      post("p1", { score: 5, comment: String.fromCharCode(0x200b) }),
+      ctx("p1"),
+    );
+
+    expect(res.status).toBe(400);
+    expect(createFeedbackMock).not.toHaveBeenCalled();
+  });
+
+  it("retorna 409 quando a conta já avaliou o produto", async () => {
+    getSessionMock.mockResolvedValueOnce(session);
+    createFeedbackMock.mockRejectedValueOnce(new DuplicateFeedbackError());
+
+    const res = await POST(post("p1", validBody), ctx("p1"));
+
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({ error: "Você já avaliou este produto" });
+  });
+
+  it("retorna 401 e apaga o cookie quando a conta da sessão não existe mais", async () => {
+    getSessionMock.mockResolvedValueOnce(session);
+    createFeedbackMock.mockRejectedValueOnce(new AccountNotFoundError());
+
+    const res = await POST(post("p1", validBody), ctx("p1"));
+
+    expect(res.status).toBe(401);
+    expect(await res.json()).toEqual({
+      error: "Sua sessão expirou. Entre novamente para avaliar.",
+    });
+    expect(res.headers.get("set-cookie")).toContain("session=;");
+    expect(res.headers.get("set-cookie")).toContain("Max-Age=0");
   });
 
   it("retorna 500 para erros inesperados", async () => {
