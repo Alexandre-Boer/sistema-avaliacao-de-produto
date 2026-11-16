@@ -48,12 +48,10 @@ export default async function ProductPage({
         </h2>
         <div className="mt-5">
           {session ? (
-            <>
-              <p className="mb-6 text-sm text-muted-foreground">
-                Você está avaliando como {session.firstName} {session.lastName}.
-              </p>
-              <FeedbackForm productId={product.id} />
-            </>
+            <FeedbackForm
+              productId={product.id}
+              authorName={`${session.firstName} ${session.lastName}`}
+            />
           ) : (
             <AuthRequired />
           )}
