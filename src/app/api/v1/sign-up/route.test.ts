@@ -23,11 +23,11 @@ const validBody = {
   passwordConfirmation: "senha-forte-123",
 };
 
-function post(body: unknown): Request {
+function post(body: unknown, headers: Record<string, string> = {}): Request {
   return new Request("http://localhost/api/v1/sign-up", {
     method: "POST",
     body: JSON.stringify(body),
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", ...headers },
   });
 }
 
@@ -36,6 +36,21 @@ beforeEach(() => {
 });
 
 describe("POST /api/v1/sign-up", () => {
+  it("retorna 403 quando o Origin é de outro site, sem criar a conta", async () => {
+    const res = await POST(
+      post(validBody, { origin: "https://malicioso.example" }),
+    );
+    expect(res.status).toBe(403);
+    expect(await res.json()).toEqual({ error: "Origem não permitida" });
+    expect(createAccountMock).not.toHaveBeenCalled();
+  });
+
+  it("aceita Origin do próprio site", async () => {
+    createAccountMock.mockResolvedValueOnce({ id: "abc123" });
+    const res = await POST(post(validBody, { origin: "http://localhost" }));
+    expect(res.status).toBe(201);
+  });
+
   it("retorna 201 com o id quando os dados são válidos", async () => {
     createAccountMock.mockResolvedValueOnce({ id: "abc123" });
     const res = await POST(post(validBody));

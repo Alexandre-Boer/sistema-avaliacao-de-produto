@@ -1,3 +1,4 @@
+import { forbiddenOriginResponse, isSameOrigin } from "@/lib/http/same-origin";
 import { signUpSchema } from "@/lib/validation/sign-up";
 import {
   createAccount,
@@ -5,6 +6,12 @@ import {
 } from "@/server/accounts/create-account";
 
 export async function POST(request: Request): Promise<Response> {
+  // Mesma proteção do sign-in e do sign-out: a página de outro site não cria
+  // contas a partir do navegador de quem a visita.
+  if (!isSameOrigin(request)) {
+    return forbiddenOriginResponse();
+  }
+
   let body: unknown;
   try {
     body = await request.json();
