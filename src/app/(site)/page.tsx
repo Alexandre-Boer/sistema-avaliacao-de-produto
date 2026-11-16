@@ -3,7 +3,7 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 import {
   ProductFeed,
-  ProductFeedSkeleton,
+  ProductFeedLoading,
 } from "@/components/products/product-feed";
 import {
   listProducts,
@@ -46,7 +46,7 @@ export default function HomePage() {
       </header>
 
       <section aria-label="Lista de produtos" className="mt-8">
-        <Suspense fallback={<ProductFeedSkeleton />}>
+        <Suspense fallback={<ProductFeedLoading />}>
           <ProductFeedWithFirstPage />
         </Suspense>
       </section>
