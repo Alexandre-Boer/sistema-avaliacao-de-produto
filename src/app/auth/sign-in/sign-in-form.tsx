@@ -15,6 +15,7 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { postJson } from "@/lib/http/post-json";
 import { type SignInInput, signInSchema } from "@/lib/validation/sign-in";
 
 const FALLBACK_ERROR = "Não foi possível entrar. Tente novamente.";
@@ -24,17 +25,8 @@ const inputClassName =
 
 const labelClassName = "text-sm font-medium";
 
-async function signIn(input: SignInInput): Promise<void> {
-  const response = await fetch("/api/v1/sign-in", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(input),
-  });
-
-  if (!response.ok) {
-    const data = await response.json().catch(() => null);
-    throw new Error(data?.error ?? FALLBACK_ERROR);
-  }
+function signIn(input: SignInInput): Promise<void> {
+  return postJson("/api/v1/sign-in", input, FALLBACK_ERROR);
 }
 
 function EyeIcon({ open }: { open: boolean }) {
@@ -81,6 +73,9 @@ export function SignInForm() {
   });
 
   const toggleLabel = showPassword ? "Ocultar senha" : "Mostrar senha";
+  // Depois do 200 a navegação ainda leva um instante: o botão continua
+  // desabilitado para o formulário não ser enviado uma segunda vez.
+  const isSubmitting = mutation.isPending || mutation.isSuccess;
 
   return (
     <form onSubmit={handleSubmit((data) => mutation.mutate(data))} noValidate>
@@ -111,9 +106,12 @@ export function SignInForm() {
             placeholder="ana@empresa.com.br"
             className={inputClassName}
             aria-invalid={Boolean(errors.email)}
+            aria-describedby={errors.email ? "email-error" : undefined}
             {...register("email")}
           />
-          {errors.email && <FieldError errors={[errors.email]} />}
+          {errors.email && (
+            <FieldError id="email-error" errors={[errors.email]} />
+          )}
         </Field>
 
         <Field data-invalid={Boolean(errors.password)}>
@@ -127,27 +125,29 @@ export function SignInForm() {
               autoComplete="current-password"
               className={`${inputClassName} pr-11`}
               aria-invalid={Boolean(errors.password)}
+              aria-describedby={errors.password ? "password-error" : undefined}
               {...register("password")}
             />
             <button
               type="button"
               onClick={() => setShowPassword((value) => !value)}
               aria-label={toggleLabel}
-              aria-pressed={showPassword}
               className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-md text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40"
             >
               <EyeIcon open={showPassword} />
             </button>
           </div>
-          {errors.password && <FieldError errors={[errors.password]} />}
+          {errors.password && (
+            <FieldError id="password-error" errors={[errors.password]} />
+          )}
         </Field>
 
         <Button
           type="submit"
-          disabled={mutation.isPending}
+          disabled={isSubmitting}
           className="mt-1 h-11 w-full rounded-md text-[15px] font-semibold shadow-sm"
         >
-          {mutation.isPending ? "Entrando…" : "Entrar"}
+          {isSubmitting ? "Entrando…" : "Entrar"}
         </Button>
 
         <p className="text-sm text-muted-foreground">

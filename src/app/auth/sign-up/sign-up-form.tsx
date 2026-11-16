@@ -15,6 +15,7 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { postJson } from "@/lib/http/post-json";
 import { type SignUpInput, signUpSchema } from "@/lib/validation/sign-up";
 
 const FALLBACK_ERROR = "Não foi possível criar sua conta. Tente novamente.";
@@ -24,17 +25,8 @@ const inputClassName =
 
 const labelClassName = "text-sm font-medium";
 
-async function signUp(input: SignUpInput): Promise<void> {
-  const response = await fetch("/api/v1/sign-up", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(input),
-  });
-
-  if (!response.ok) {
-    const data = await response.json().catch(() => null);
-    throw new Error(data?.error ?? FALLBACK_ERROR);
-  }
+function signUp(input: SignUpInput): Promise<void> {
+  return postJson("/api/v1/sign-up", input, FALLBACK_ERROR);
 }
 
 function EyeIcon({ open }: { open: boolean }) {
@@ -103,6 +95,9 @@ export function SignUpForm() {
 
   const passwordType = showPassword ? "text" : "password";
   const toggleLabel = showPassword ? "Ocultar senha" : "Mostrar senha";
+  // Depois do 201 a navegação ainda leva um instante: o botão continua
+  // desabilitado para o formulário não ser enviado uma segunda vez.
+  const isSubmitting = mutation.isPending || mutation.isSuccess;
 
   return (
     <form onSubmit={handleSubmit((data) => mutation.mutate(data))} noValidate>
@@ -131,9 +126,14 @@ export function SignUpForm() {
               autoComplete="given-name"
               className={inputClassName}
               aria-invalid={Boolean(errors.firstName)}
+              aria-describedby={
+                errors.firstName ? "firstName-error" : undefined
+              }
               {...register("firstName")}
             />
-            {errors.firstName && <FieldError errors={[errors.firstName]} />}
+            {errors.firstName && (
+              <FieldError id="firstName-error" errors={[errors.firstName]} />
+            )}
           </Field>
 
           <Field data-invalid={Boolean(errors.lastName)}>
@@ -145,9 +145,12 @@ export function SignUpForm() {
               autoComplete="family-name"
               className={inputClassName}
               aria-invalid={Boolean(errors.lastName)}
+              aria-describedby={errors.lastName ? "lastName-error" : undefined}
               {...register("lastName")}
             />
-            {errors.lastName && <FieldError errors={[errors.lastName]} />}
+            {errors.lastName && (
+              <FieldError id="lastName-error" errors={[errors.lastName]} />
+            )}
           </Field>
         </div>
 
@@ -163,9 +166,12 @@ export function SignUpForm() {
             placeholder="ana@empresa.com.br"
             className={inputClassName}
             aria-invalid={Boolean(errors.email)}
+            aria-describedby={errors.email ? "email-error" : undefined}
             {...register("email")}
           />
-          {errors.email && <FieldError errors={[errors.email]} />}
+          {errors.email && (
+            <FieldError id="email-error" errors={[errors.email]} />
+          )}
         </Field>
 
         <Field data-invalid={Boolean(errors.password)}>
@@ -179,21 +185,22 @@ export function SignUpForm() {
               autoComplete="new-password"
               className={`${inputClassName} pr-11`}
               aria-invalid={Boolean(errors.password)}
-              aria-describedby="password-hint"
+              aria-describedby={
+                errors.password ? "password-error" : "password-hint"
+              }
               {...register("password")}
             />
             <button
               type="button"
               onClick={() => setShowPassword((value) => !value)}
               aria-label={toggleLabel}
-              aria-pressed={showPassword}
               className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-md text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40"
             >
               <EyeIcon open={showPassword} />
             </button>
           </div>
           {errors.password ? (
-            <FieldError errors={[errors.password]} />
+            <FieldError id="password-error" errors={[errors.password]} />
           ) : (
             <FieldDescription id="password-hint" className="text-sm">
               Pelo menos 8 caracteres.
@@ -211,19 +218,27 @@ export function SignUpForm() {
             autoComplete="new-password"
             className={inputClassName}
             aria-invalid={Boolean(errors.passwordConfirmation)}
+            aria-describedby={
+              errors.passwordConfirmation
+                ? "passwordConfirmation-error"
+                : undefined
+            }
             {...register("passwordConfirmation")}
           />
           {errors.passwordConfirmation && (
-            <FieldError errors={[errors.passwordConfirmation]} />
+            <FieldError
+              id="passwordConfirmation-error"
+              errors={[errors.passwordConfirmation]}
+            />
           )}
         </Field>
 
         <Button
           type="submit"
-          disabled={mutation.isPending}
+          disabled={isSubmitting}
           className="mt-1 h-11 w-full rounded-md text-[15px] font-semibold shadow-sm"
         >
-          {mutation.isPending ? "Criando conta…" : "Criar conta"}
+          {isSubmitting ? "Criando conta…" : "Criar conta"}
         </Button>
 
         <p className="flex items-start gap-2 text-sm leading-relaxed text-muted-foreground">
