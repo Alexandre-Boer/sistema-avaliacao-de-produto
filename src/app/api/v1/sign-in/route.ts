@@ -5,10 +5,24 @@ import {
   authenticate,
   InvalidCredentialsError,
 } from "@/server/accounts/authenticate";
+import {
+  clearFailedSignIns,
+  getSignInBlock,
+  recordFailedSignIn,
+} from "@/server/accounts/sign-in-attempts";
 
 function isJsonRequest(request: Request): boolean {
   const mediaType = request.headers.get("content-type")?.split(";")[0];
   return mediaType?.trim().toLowerCase() === "application/json";
+}
+
+function tooManyAttemptsResponse(retryAfterSeconds: number): Response {
+  const minutes = Math.ceil(retryAfterSeconds / 60);
+  const wait = minutes === 1 ? "1 minuto" : `${minutes} minutos`;
+  return Response.json(
+    { error: `Muitas tentativas de login. Tente de novo em ${wait}.` },
+    { status: 429, headers: { "retry-after": String(retryAfterSeconds) } },
+  );
 }
 
 export async function POST(request: Request): Promise<Response> {
@@ -42,9 +56,19 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
+  const { email } = parsed.data;
+
+  // Com o limite estourado a senha nem é verificada: a resposta é a mesma
+  // para senha certa ou errada, então insistir não ensina nada ao atacante.
+  const block = await getSignInBlock(email);
+  if (block) {
+    return tooManyAttemptsResponse(block.retryAfterSeconds);
+  }
+
   try {
     const session = await authenticate(parsed.data);
     const token = await createSessionToken(session);
+    await clearFailedSignIns(email);
 
     // O cookie vai direto no header da resposta (em vez de `cookies().set`)
     // para o handler continuar testável sem mock de `next/headers`.
@@ -57,6 +81,9 @@ export async function POST(request: Request): Promise<Response> {
     );
   } catch (error) {
     if (error instanceof InvalidCredentialsError) {
+      // Registrada exista ou não a conta, para o limite não revelar quais
+      // e-mails estão cadastrados.
+      await recordFailedSignIn(email);
       return Response.json({ error: error.message }, { status: 401 });
     }
     console.error("Erro ao autenticar:", error);
