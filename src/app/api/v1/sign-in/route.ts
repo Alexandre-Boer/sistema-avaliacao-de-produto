@@ -1,3 +1,4 @@
+import { forbiddenOriginResponse, isSameOrigin } from "@/lib/http/same-origin";
 import { createSessionToken, serializeSessionCookie } from "@/lib/session";
 import { signInSchema } from "@/lib/validation/sign-in";
 import {
@@ -5,7 +6,27 @@ import {
   InvalidCredentialsError,
 } from "@/server/accounts/authenticate";
 
+function isJsonRequest(request: Request): boolean {
+  const mediaType = request.headers.get("content-type")?.split(";")[0];
+  return mediaType?.trim().toLowerCase() === "application/json";
+}
+
 export async function POST(request: Request): Promise<Response> {
+  // Login CSRF: sem estas duas checagens, a página de outro site conseguiria
+  // autenticar o navegador da vítima na conta do atacante.
+  if (!isSameOrigin(request)) {
+    return forbiddenOriginResponse();
+  }
+
+  // Um <form> de outro site só consegue enviar urlencoded, multipart ou
+  // text/plain; exigir JSON fecha esse caminho mesmo sem o header Origin.
+  if (!isJsonRequest(request)) {
+    return Response.json(
+      { error: "Content-Type deve ser application/json" },
+      { status: 415 },
+    );
+  }
+
   let body: unknown;
   try {
     body = await request.json();

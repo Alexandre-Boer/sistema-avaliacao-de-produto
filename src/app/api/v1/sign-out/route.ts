@@ -1,6 +1,12 @@
+import { forbiddenOriginResponse, isSameOrigin } from "@/lib/http/same-origin";
 import { serializeClearedSessionCookie } from "@/lib/session";
 
-export async function POST(): Promise<Response> {
+export async function POST(request: Request): Promise<Response> {
+  // Sem a checagem, a página de outro site conseguiria deslogar a pessoa.
+  if (!isSameOrigin(request)) {
+    return forbiddenOriginResponse();
+  }
+
   return Response.json(
     { ok: true },
     {
