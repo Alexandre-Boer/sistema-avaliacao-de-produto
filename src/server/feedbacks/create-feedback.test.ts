@@ -1,6 +1,8 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
+  AccountNotFoundError,
   createFeedback,
+  DuplicateFeedbackError,
   ProductNotFoundError,
 } from "@/server/feedbacks/create-feedback";
 
@@ -48,7 +50,40 @@ describe("createFeedback", () => {
     );
   });
 
-  it("não confunde a FK do autor (conta removida) com produto inexistente", async () => {
+  it("lança ProductNotFoundError sem consultar o banco quando o id do produto tem NUL", async () => {
+    await expect(
+      createFeedback({ ...input, productId: String.fromCharCode(0) }),
+    ).rejects.toBeInstanceOf(ProductNotFoundError);
+    expect(insertSpy).not.toHaveBeenCalled();
+  });
+
+  it("lança DuplicateFeedbackError quando a conta já avaliou o produto (23505 no índice único)", async () => {
+    insertSpy.mockResolvedValueOnce({
+      error: {
+        code: "23505",
+        message:
+          'duplicate key value violates unique constraint "products_feedbacks_product_id_created_by_key"',
+      },
+    });
+    await expect(createFeedback(input)).rejects.toBeInstanceOf(
+      DuplicateFeedbackError,
+    );
+  });
+
+  it("não trata outra violação de unicidade (23505) como avaliação repetida", async () => {
+    insertSpy.mockResolvedValueOnce({
+      error: {
+        code: "23505",
+        message:
+          'duplicate key value violates unique constraint "products_feedbacks_pkey"',
+      },
+    });
+    const promise = createFeedback(input);
+    await expect(promise).rejects.not.toBeInstanceOf(DuplicateFeedbackError);
+    await expect(promise).rejects.toThrow("products_feedbacks_pkey");
+  });
+
+  it("lança AccountNotFoundError na violação da FK do autor (conta removida), sem confundir com produto inexistente", async () => {
     insertSpy.mockResolvedValueOnce({
       error: {
         code: "23503",
@@ -58,7 +93,7 @@ describe("createFeedback", () => {
     });
     const promise = createFeedback(input);
     await expect(promise).rejects.not.toBeInstanceOf(ProductNotFoundError);
-    await expect(promise).rejects.toThrow("created_by");
+    await expect(promise).rejects.toBeInstanceOf(AccountNotFoundError);
   });
 
   it("relança erros inesperados", async () => {

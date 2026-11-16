@@ -1,5 +1,11 @@
+import { cacheLife } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getProductById } from "@/server/products/get-product";
+
+// Fora do Next.js o `cacheLife` lança erro; a diretiva "use cache" é só uma string.
+vi.mock("next/cache", () => ({
+  cacheLife: vi.fn(),
+}));
 
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: vi.fn(),
@@ -44,9 +50,22 @@ describe("getProductById", () => {
     });
   });
 
+  it("guarda o resultado em cache por alguns minutos", async () => {
+    maybeSingleSpy.mockResolvedValueOnce({ data: row, error: null });
+
+    await getProductById("p1");
+
+    expect(cacheLife).toHaveBeenCalledWith("minutes");
+  });
+
   it("devolve null quando não existe", async () => {
     maybeSingleSpy.mockResolvedValueOnce({ data: null, error: null });
     expect(await getProductById("nao-existe")).toBeNull();
+  });
+
+  it("devolve null sem consultar o banco quando o id tem o caractere NUL", async () => {
+    expect(await getProductById(String.fromCharCode(0))).toBeNull();
+    expect(fromSpy).not.toHaveBeenCalled();
   });
 
   it("relança erros do banco", async () => {

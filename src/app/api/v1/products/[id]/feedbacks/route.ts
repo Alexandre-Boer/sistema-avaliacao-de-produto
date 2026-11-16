@@ -1,7 +1,9 @@
-import { getSession } from "@/lib/session";
+import { getSession, serializeClearedSessionCookie } from "@/lib/session";
 import { feedbackSchema } from "@/lib/validation/feedback";
 import {
+  AccountNotFoundError,
   createFeedback,
+  DuplicateFeedbackError,
   ProductNotFoundError,
 } from "@/server/feedbacks/create-feedback";
 
@@ -43,6 +45,19 @@ export async function POST(
   } catch (error) {
     if (error instanceof ProductNotFoundError) {
       return Response.json({ error: error.message }, { status: 404 });
+    }
+    if (error instanceof DuplicateFeedbackError) {
+      return Response.json({ error: error.message }, { status: 409 });
+    }
+    if (error instanceof AccountNotFoundError) {
+      // A conta foi removida: a sessão não vale mais, então o cookie sai junto.
+      return Response.json(
+        { error: error.message },
+        {
+          status: 401,
+          headers: { "set-cookie": serializeClearedSessionCookie() },
+        },
+      );
     }
     console.error("Erro ao criar avaliação:", error);
     return Response.json({ error: "Erro interno" }, { status: 500 });
