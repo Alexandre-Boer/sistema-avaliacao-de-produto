@@ -37,7 +37,7 @@ export default async function ProductPage({
     <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-12 px-6 py-10">
       <ProductHeader product={product} />
 
-      <FeedbackList feedbacks={feedbacks} />
+      <FeedbackList {...feedbacks} />
 
       <section aria-labelledby="new-feedback-heading">
         <h2
