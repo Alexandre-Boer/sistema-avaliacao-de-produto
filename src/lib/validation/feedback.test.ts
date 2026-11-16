@@ -7,8 +7,12 @@ describe("feedbackSchema", () => {
     expect(feedbackSchema.parse(valid)).toEqual(valid);
   });
 
-  it("converte nota enviada como string", () => {
-    expect(feedbackSchema.parse({ ...valid, score: "5" }).score).toBe(5);
+  it("rejeita nota que não é número (string, booleano, lista)", () => {
+    for (const score of ["5", "0x3", true, [3], null]) {
+      const result = feedbackSchema.safeParse({ ...valid, score });
+      expect(result.success).toBe(false);
+      expect(result.error?.issues[0].message).toBe("Escolha uma nota de 1 a 5");
+    }
   });
 
   it("rejeita nota 0, 6 e 4.5", () => {
