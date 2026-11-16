@@ -1,4 +1,5 @@
 import { GET, POST } from "@/app/api/v1/products/route";
+import { CREATE_PRODUCT_MAX_BODY_BYTES as MAX_BODY_BYTES } from "@/lib/validation/product";
 import { createProduct } from "@/server/products/create-product";
 import { listProducts } from "@/server/products/list-products";
 import type { Product } from "@/server/products/product";
@@ -84,6 +85,11 @@ describe("GET /api/v1/products", () => {
     "?limit=abc",
     "?limit=1000",
     "?offset=-1",
+    "?offset=9007199254740991",
+    "?limit=1e1",
+    "?limit=0x10",
+    "?offset=1.0",
+    "?offset=",
   ])("retorna 400 para query inválida (%s)", async (query) => {
     const res = await GET(get(query));
     expect(res.status).toBe(400);
@@ -122,6 +128,46 @@ describe("POST /api/v1/products", () => {
     );
     expect(res.status).toBe(400);
     expect((await res.json()).error).toBe("Dados inválidos");
+    expect(createProductMock).not.toHaveBeenCalled();
+  });
+
+  it("retorna 413 quando o Content-Length passa do limite, sem ler o corpo", async () => {
+    const request = new Request(URL_BASE, {
+      method: "POST",
+      body: JSON.stringify(validBody),
+      headers: {
+        "content-type": "application/json",
+        "content-length": String(MAX_BODY_BYTES + 1),
+      },
+    });
+    const res = await POST(request);
+    expect(res.status).toBe(413);
+    expect(await res.json()).toEqual({
+      error: "Corpo da requisição grande demais",
+    });
+    expect(request.bodyUsed).toBe(false);
+    expect(createProductMock).not.toHaveBeenCalled();
+  });
+
+  it("retorna 413 quando o corpo real passa do limite, mesmo sem Content-Length", async () => {
+    const res = await POST(
+      post({ ...validBody, description: "a".repeat(MAX_BODY_BYTES) }),
+    );
+    expect(res.status).toBe(413);
+    expect(createProductMock).not.toHaveBeenCalled();
+  });
+
+  it("conta o limite em bytes, não em caracteres", async () => {
+    // Cada "é" ocupa 2 bytes em UTF-8: menos caracteres que o limite, mais bytes.
+    const res = await POST(
+      post({ ...validBody, description: "é".repeat(MAX_BODY_BYTES / 2) }),
+    );
+    expect(res.status).toBe(413);
+  });
+
+  it("retorna 400 quando o corpo vem vazio", async () => {
+    const res = await POST(new Request(URL_BASE, { method: "POST" }));
+    expect(res.status).toBe(400);
     expect(createProductMock).not.toHaveBeenCalled();
   });
 

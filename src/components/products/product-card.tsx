@@ -1,10 +1,13 @@
+"use client";
+
 import { ArrowUpRightIcon } from "@phosphor-icons/react/dist/ssr";
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 import type { Product } from "@/server/products/product";
 
 /**
- * Bloco exibido quando o produto não tem imagem: as três barras da marca sobre
+ * Bloco exibido quando o produto não tem imagem (ou ela não carrega): as três barras da marca sobre
  * a mesma grade fina do painel de marca, em tons neutros.
  */
 function ImagePlaceholder() {
@@ -27,14 +30,24 @@ function ImagePlaceholder() {
 }
 
 export function ProductCard({ product }: { product: Product }) {
+  // Guarda a URL que falhou (e não só um booleano): se o produto passar a ter
+  // outra imagem, o card tenta carregá-la em vez de ficar preso no placeholder.
+  const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
+  const imageUrl =
+    product.imageUrl && product.imageUrl !== failedImageUrl
+      ? product.imageUrl
+      : null;
+
   return (
     <article className="group relative flex h-full flex-col overflow-hidden rounded-xl border bg-card transition-[border-color,box-shadow] duration-200 focus-within:border-ring hover:border-ring/60 hover:shadow-[0_18px_40px_-28px_var(--deep)]">
       <div className="relative aspect-[4/3] overflow-hidden border-b bg-muted">
-        {product.imageUrl ? (
+        {imageUrl ? (
           <Image
-            src={product.imageUrl}
+            src={imageUrl}
             alt=""
             fill
+            // URL quebrada (404, host fora do ar): cai no mesmo placeholder.
+            onError={() => setFailedImageUrl(imageUrl)}
             sizes="(min-width: 1024px) 360px, (min-width: 640px) 50vw, 100vw"
             className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
           />

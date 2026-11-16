@@ -1,7 +1,11 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, render, screen } from "@testing-library/react";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { ProductFeed } from "@/components/products/product-feed";
+import {
+  ProductFeed,
+  ProductFeedLoading,
+} from "@/components/products/product-feed";
+import { createQueryClient } from "@/lib/query-client";
 import type { Product } from "@/server/products/product";
 
 const fetchMock = vi.fn();
@@ -61,10 +65,29 @@ function jsonResponse(body: unknown, status = 200) {
   return { ok: status < 400, status, json: async () => body };
 }
 
-function renderFeed(props: React.ComponentProps<typeof ProductFeed> = {}) {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
+/** Promise controlada pelo teste, para observar a tela durante uma busca. */
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((res) => {
+    resolve = res;
   });
+  return { promise, resolve };
+}
+
+/** Segundo argumento do `fetch`: o `signal` do TanStack Query. */
+const withSignal = expect.objectContaining({
+  signal: expect.any(AbortSignal),
+});
+
+/**
+ * Espera que cobre a repetição automática de produção: depois de uma falha de
+ * rede ou HTTP 5xx o TanStack Query aguarda ~1 s e tenta mais uma vez.
+ */
+const AFTER_RETRY = { timeout: 4000 };
+
+function renderFeed(props: React.ComponentProps<typeof ProductFeed> = {}) {
+  // Mesma configuração de produção (ver `src/app/providers.tsx`).
+  const queryClient = createQueryClient();
   return render(
     <QueryClientProvider client={queryClient}>
       <ProductFeed {...props} />
@@ -81,6 +104,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
 
 describe("ProductFeed", () => {
@@ -101,6 +125,7 @@ describe("ProductFeed", () => {
     );
     expect(fetchMock).toHaveBeenCalledWith(
       "/api/v1/products?limit=12&offset=0",
+      withSignal,
     );
   });
 
@@ -136,28 +161,46 @@ describe("ProductFeed", () => {
   it("mostra erro e permite tentar novamente", async () => {
     fetchMock
       .mockRejectedValueOnce(new Error("rede fora"))
+      .mockRejectedValueOnce(new Error("rede fora"))
       .mockResolvedValueOnce(
         jsonResponse({ items: [product("p1", "Fone X")], nextOffset: null }),
       );
     const user = userEvent.setup();
     renderFeed();
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(
+    expect(await screen.findByRole("alert", {}, AFTER_RETRY)).toHaveTextContent(
       "Não foi possível carregar os produtos",
     );
+    // Falha de rede: a tentativa original mais uma única repetição automática.
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+
     await user.click(screen.getByRole("button", { name: "Tentar novamente" }));
 
     expect(await screen.findByRole("link", { name: "Fone X" })).toBeVisible();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
-  it("trata resposta HTTP de erro como falha", async () => {
-    fetchMock.mockResolvedValueOnce(
-      jsonResponse({ error: "Erro interno" }, 500),
+  it("trata HTTP 5xx como falha depois de uma única repetição", async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ error: "Erro interno" }, 500));
+    renderFeed();
+
+    expect(
+      await screen.findByRole("alert", {}, AFTER_RETRY),
+    ).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("mostra o erro na hora, sem repetir, quando a resposta é HTTP 4xx", async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse({ error: "Parâmetros inválidos" }, 400),
     );
     renderFeed();
 
-    expect(await screen.findByRole("alert")).toBeInTheDocument();
+    // Timeout curto de propósito: não pode haver espera de repetição.
+    expect(
+      await screen.findByRole("alert", {}, { timeout: 500 }),
+    ).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("busca a próxima página quando o sentinela entra na tela", async () => {
@@ -184,6 +227,7 @@ describe("ProductFeed", () => {
     ).toBeVisible();
     expect(fetchMock).toHaveBeenLastCalledWith(
       "/api/v1/products?limit=12&offset=12",
+      withSignal,
     );
     expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(15);
     expect(screen.getByText("Você viu todos os produtos")).toBeInTheDocument();
@@ -233,6 +277,7 @@ describe("ProductFeed", () => {
         jsonResponse({ items: products(1, 12), nextOffset: 12 }),
       )
       .mockRejectedValueOnce(new Error("rede fora"))
+      .mockRejectedValueOnce(new Error("rede fora"))
       .mockResolvedValueOnce(
         jsonResponse({ items: products(13, 3), nextOffset: null }),
       );
@@ -244,18 +289,145 @@ describe("ProductFeed", () => {
     ).toBeVisible();
     scrollSentinelIntoView();
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(
+    expect(await screen.findByRole("alert", {}, AFTER_RETRY)).toHaveTextContent(
       "Não foi possível carregar mais produtos",
     );
     expect(screen.getByRole("link", { name: "Produto 1" })).toBeVisible();
 
+    // Primeira página + tentativa da segunda + uma repetição automática.
     scrollSentinelIntoView();
-    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
 
     await user.click(screen.getByRole("button", { name: "Tentar novamente" }));
     expect(
       await screen.findByRole("link", { name: "Produto 15" }),
     ).toBeVisible();
+  });
+
+  it("mostra carregamento e ignora cliques repetidos ao tentar novamente", async () => {
+    const retry = deferred<ReturnType<typeof jsonResponse>>();
+    fetchMock
+      .mockResolvedValueOnce(
+        jsonResponse({ items: products(1, 12), nextOffset: 12 }),
+      )
+      .mockResolvedValueOnce(jsonResponse({ error: "Inválido" }, 400))
+      .mockReturnValueOnce(retry.promise);
+    const user = userEvent.setup();
+    renderFeed();
+
+    expect(
+      await screen.findByRole("link", { name: "Produto 12" }),
+    ).toBeVisible();
+    scrollSentinelIntoView();
+
+    const button = await screen.findByRole("button", {
+      name: "Tentar novamente",
+    });
+    await user.click(button);
+
+    // Durante a nova tentativa: some o alerta, aparece o carregamento e o
+    // botão (o mesmo elemento, para o foco não se perder) fica indisponível.
+    await waitFor(() =>
+      expect(screen.getByRole("status")).toHaveTextContent(
+        "Carregando mais produtos…",
+      ),
+    );
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(button).toBeInTheDocument();
+    expect(button).toHaveAttribute("aria-disabled", "true");
+    expect(button).not.toHaveAccessibleName("Tentar novamente");
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+
+    await user.click(button);
+    await user.click(button);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+
+    await act(async () => {
+      retry.resolve(jsonResponse({ items: products(13, 3), nextOffset: null }));
+    });
+    expect(
+      await screen.findByRole("link", { name: "Produto 15" }),
+    ).toBeVisible();
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it("aborta a requisição em andamento quando o feed sai da tela", async () => {
+    fetchMock.mockReturnValueOnce(new Promise(() => {}));
+    const { unmount } = renderFeed();
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    const { signal } = fetchMock.mock.calls[0][1] as { signal: AbortSignal };
+    expect(signal.aborted).toBe(false);
+
+    unmount();
+    expect(signal.aborted).toBe(true);
+  });
+
+  it("não repete o produto que reaparece na página seguinte", async () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    // Um produto criado entre as duas cargas empurra o p12 para a página 2.
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse({
+        items: [product("p12", "Produto 12"), ...products(13, 2)],
+        nextOffset: null,
+      }),
+    );
+    renderFeed({ initialPage: { items: products(1, 12), nextOffset: 12 } });
+
+    scrollSentinelIntoView();
+
+    expect(
+      await screen.findByRole("link", { name: "Produto 14" }),
+    ).toBeVisible();
+    expect(screen.getAllByRole("link", { name: "Produto 12" })).toHaveLength(1);
+    expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(14);
+    // O React avisa "Encountered two children with the same key" via console.error.
+    expect(consoleError).not.toHaveBeenCalled();
+  });
+
+  it("anuncia carregamento e fim da lista na mesma região viva", async () => {
+    const firstPage = deferred<ReturnType<typeof jsonResponse>>();
+    const secondPage = deferred<ReturnType<typeof jsonResponse>>();
+    fetchMock
+      .mockReturnValueOnce(firstPage.promise)
+      .mockReturnValueOnce(secondPage.promise);
+    const user = userEvent.setup();
+    renderFeed();
+
+    // A região fica montada do começo ao fim; só o texto muda.
+    const status = screen.getByRole("status");
+    expect(status).toHaveAttribute("aria-live", "polite");
+    expect(status).toHaveTextContent("Carregando produtos…");
+    // `aria-busy` num ancestral seguraria os anúncios da região.
+    expect(status.closest("[aria-busy='true']")).toBeNull();
+
+    await act(async () => {
+      firstPage.resolve(
+        jsonResponse({ items: products(1, 12), nextOffset: 12 }),
+      );
+    });
+    expect(
+      await screen.findByRole("link", { name: "Produto 12" }),
+    ).toBeVisible();
+    expect(screen.getByRole("status")).toBe(status);
+    expect(status).toBeEmptyDOMElement();
+
+    await user.click(screen.getByRole("button", { name: "Carregar mais" }));
+    await waitFor(() =>
+      expect(status).toHaveTextContent("Carregando mais produtos…"),
+    );
+
+    await act(async () => {
+      secondPage.resolve(
+        jsonResponse({ items: products(13, 3), nextOffset: null }),
+      );
+    });
+    await waitFor(() =>
+      expect(status).toHaveTextContent("Você viu todos os produtos"),
+    );
+    expect(screen.getByRole("status")).toBe(status);
   });
 
   it("usa a primeira página vinda do servidor sem buscá-la de novo", async () => {
@@ -275,6 +447,17 @@ describe("ProductFeed", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock).toHaveBeenCalledWith(
       "/api/v1/products?limit=12&offset=12",
+      withSignal,
+    );
+  });
+});
+
+describe("ProductFeedLoading", () => {
+  it("dá texto ao esqueleto para quem usa leitor de tela", () => {
+    render(<ProductFeedLoading />);
+
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Carregando produtos…",
     );
   });
 });

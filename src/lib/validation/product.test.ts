@@ -1,5 +1,6 @@
 import {
   createProductSchema,
+  LIST_PRODUCTS_MAX_OFFSET,
   listProductsQuerySchema,
 } from "@/lib/validation/product";
 
@@ -117,5 +118,49 @@ describe("listProductsQuerySchema", () => {
     expect(listProductsQuerySchema.safeParse({ offset: "-1" }).success).toBe(
       false,
     );
+  });
+
+  it.each([
+    ["limit", "1e1"],
+    ["limit", "0x10"],
+    ["limit", "1.0"],
+    ["limit", " 5"],
+    ["limit", "+5"],
+    ["limit", "05"],
+    ["limit", ""],
+    ["offset", "1e1"],
+    ["offset", "0x10"],
+    ["offset", "1.0"],
+    ["offset", ""],
+    ["offset", " 1"],
+    ["offset", "+1"],
+    ["offset", "01"],
+  ])("rejeita %s que não é um inteiro decimal simples (%j)", (param, value) => {
+    expect(listProductsQuerySchema.safeParse({ [param]: value }).success).toBe(
+      false,
+    );
+  });
+
+  it("limita o offset a um teto", () => {
+    expect(
+      listProductsQuerySchema.safeParse({
+        offset: String(LIST_PRODUCTS_MAX_OFFSET),
+      }).success,
+    ).toBe(true);
+    expect(
+      listProductsQuerySchema.safeParse({
+        offset: String(LIST_PRODUCTS_MAX_OFFSET + 1),
+      }).success,
+    ).toBe(false);
+    expect(
+      listProductsQuerySchema.safeParse({ offset: "9007199254740991" }).success,
+    ).toBe(false);
+    expect(
+      listProductsQuerySchema.safeParse({ offset: "9".repeat(400) }).success,
+    ).toBe(false);
+  });
+
+  it("aceita offset zero", () => {
+    expect(listProductsQuerySchema.parse({ offset: "0" }).offset).toBe(0);
   });
 });

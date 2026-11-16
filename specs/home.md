@@ -68,6 +68,27 @@ Listagem pública de produtos implementada de ponta a ponta e verificada contra 
 - O scroll infinito no navegador (rolar, carregar os 3 restantes e ver "Você viu todos os produtos") está coberto pelos testes do `ProductFeed` com `IntersectionObserver` simulado; a conferência visual fica para a etapa de integração.
 - Clicar no nome leva a `/products/<id>`, que responde `404` neste branch: a página de detalhes é entregue pela feature Feedback.
 
+### Correções após a revisão de código (branch `fix/home`, 15/11/2026)
+Oito achados menores da revisão, cada um com teste escrito antes da correção. Onde este trecho contradiz o que está acima, vale este.
+
+1. **"Tentar novamente" no feed:** durante a nova tentativa o alerta some, aparece "Carregando mais produtos…" e o botão fica indisponível (`aria-disabled`, sem perder o foco). Cliques repetidos não disparam outra requisição (`cancelRefetch: false`) e o `signal` do TanStack Query vai para o `fetch`, então a requisição é abortada quando a busca é cancelada. "Carregar mais" e "Tentar novamente" passaram a ser um único botão.
+2. **Repetição automática:** `src/lib/query-client.ts` exporta `createQueryClient`, usada por `src/app/providers.tsx` e pelos testes do feed (antes os testes usavam `retry: false`). Política: HTTP 4xx não repete; falha de rede ou 5xx repete no máximo 1 vez (~1 s), no lugar das 3 repetições padrão (~7 s). O feed lança `HttpError` com o status. Mutations não mudaram.
+3. **Query string do `GET`:** `limit` e `offset` só aceitam inteiros decimais simples (`^(0|[1-9]\d*)$`); `1e1`, `0x10`, `1.0`, texto vazio, sinal, espaços e zeros à esquerda dão `400`. `offset` tem teto de 100.000. Parâmetro ausente continua usando o default.
+4. **Corpo do `POST`:** acima de 16 KB responde `413`, antes do parse. O `Content-Length` declarado é conferido primeiro e os bytes são contados durante a leitura, para o caso de o cabeçalho faltar ou mentir. O endpoint continua sem autenticação.
+5. **Item repetido entre páginas:** o feed deduplica por `id` ao juntar as páginas, então um produto criado durante a rolagem não gera card repetido nem `key` duplicada. A paginação continua por offset.
+6. **Leitor de tela:** o feed tem uma única região viva (`<output aria-live="polite">`) que fica sempre montada e só muda de texto: "Carregando produtos…", "Carregando mais produtos…" e "Você viu todos os produtos". Ela fica fora do `aria-busy`. O fallback do `<Suspense>` da home agora é `ProductFeedLoading`, o esqueleto com o texto "Carregando produtos…".
+7. **Imagem quebrada:** o card cai no placeholder "Sem imagem" também no `onError` da imagem. Por isso `product-card.tsx` virou Client Component (já era usado só pelo feed, que é cliente).
+8. **`error.tsx`:** `src/app/(site)/error.tsx` mostra "Algo deu errado" com "Tentar novamente" (prop `retry` do Next 16.3+) e link para a lista de produtos, com o cabeçalho do site preservado.
+
+Verificação desta rodada:
+- `npm test`: 186 testes em 30 arquivos, todos passando. `npx biome check .`: sem erros. `npm run build`: sucesso, `/` continua Partial Prerender.
+- Por HTTP, no servidor de desenvolvimento (porta 3002), sem criar nem apagar produtos:
+  - `?offset=9007199254740991`, `?limit=1e1`, `?limit=0x10`, `?offset=1.0`, `?offset=` e `?offset=100001` → `400`; `?offset=100000` e `?limit=12&offset=12` → `200`.
+  - `GET /api/v1/products` → `200`, 12 itens, `nextOffset: 12`.
+  - `POST` com corpo de ~17 KB → `413`, com `Content-Length` e também em `Transfer-Encoding: chunked`; `POST` pequeno inválido ou que não é JSON → `400`.
+  - `GET /` → `200`, com 12 `<h3>`, 12 links `/products/<id>`, o botão "Carregar mais" e o fallback "Carregando produtos…" na casca estática.
+- Não verificado no navegador: o anúncio real em leitor de tela, o foco do botão durante a nova tentativa e a tela de `error.tsx` renderizada. Esses pontos estão cobertos só por testes com jsdom.
+
 ### Decisões e desvios conscientes da spec
 - **Coluna `image_url`:** a spec lista as colunas sem imagem, mas exige mostrar a imagem e recebê-la no `POST`.
 - **`score boolean` mantido** como a spec descreve, com `default false`. Parece um engano da spec (talvez numérico), mas nada depende dele por enquanto.
