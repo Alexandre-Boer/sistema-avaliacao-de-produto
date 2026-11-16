@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { SignUpForm } from "@/app/auth/sign-up/sign-up-form";
 
@@ -99,5 +99,96 @@ describe("SignUpForm", () => {
     const alert = await screen.findByRole("alert");
     expect(alert).toHaveTextContent("E-mail já cadastrado");
     expect(pushMock).not.toHaveBeenCalled();
+  });
+
+  it("mantém o botão desabilitado depois do 201, até a navegação acontecer", async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      status: 201,
+      json: async () => ({ id: "abc123" }),
+    });
+    const user = userEvent.setup();
+    renderForm();
+    await fillValidForm(user);
+    await user.click(screen.getByRole("button", { name: "Criar conta" }));
+
+    await waitFor(() => expect(pushMock).toHaveBeenCalled());
+    expect(
+      screen.getByRole("button", { name: "Criando conta…" }),
+    ).toBeDisabled();
+  });
+
+  it("mostra mensagem em português quando a rede falha, e não o texto do navegador", async () => {
+    fetchMock.mockRejectedValueOnce(new TypeError("Failed to fetch"));
+    const user = userEvent.setup();
+    renderForm();
+    await fillValidForm(user);
+    await user.click(screen.getByRole("button", { name: "Criar conta" }));
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent(
+      "Não foi possível conectar. Verifique sua conexão e tente de novo.",
+    );
+    expect(alert).not.toHaveTextContent("Failed to fetch");
+    expect(pushMock).not.toHaveBeenCalled();
+  });
+
+  it("liga cada campo inválido à sua mensagem de erro com aria-describedby", async () => {
+    const user = userEvent.setup();
+    renderForm();
+    const password = screen.getByLabelText("Senha");
+    expect(screen.getByLabelText("Nome")).not.toHaveAttribute(
+      "aria-describedby",
+    );
+    // Sem erro, a senha é descrita pela dica de tamanho.
+    expect(password).toHaveAccessibleDescription("Pelo menos 8 caracteres.");
+
+    await user.click(screen.getByRole("button", { name: "Criar conta" }));
+
+    await screen.findByText("Informe seu nome");
+    expect(screen.getByLabelText("Nome")).toHaveAccessibleDescription(
+      "Informe seu nome",
+    );
+    expect(screen.getByLabelText("Sobrenome")).toHaveAccessibleDescription(
+      "Informe seu sobrenome",
+    );
+    for (const label of ["E-mail", "Senha"]) {
+      const field = screen.getByLabelText(label);
+      const describedBy = field.getAttribute("aria-describedby") ?? "";
+      const description = document.getElementById(describedBy);
+      expect(description).toHaveAttribute("data-slot", "field-error");
+      expect(description).not.toBeEmptyDOMElement();
+    }
+  });
+
+  it("liga a confirmação de senha ao erro de senhas diferentes", async () => {
+    const user = userEvent.setup();
+    renderForm();
+    await fillValidForm(user);
+    const confirmation = screen.getByLabelText("Confirmação de senha");
+    await user.type(confirmation, "-diferente");
+    await user.click(screen.getByRole("button", { name: "Criar conta" }));
+
+    await waitFor(() =>
+      expect(confirmation).toHaveAttribute("aria-invalid", "true"),
+    );
+    const description = document.getElementById(
+      confirmation.getAttribute("aria-describedby") ?? "",
+    );
+    expect(description).toHaveAttribute("data-slot", "field-error");
+    expect(description).not.toBeEmptyDOMElement();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("o botão de mostrar/ocultar senha troca o rótulo e não usa aria-pressed", async () => {
+    const user = userEvent.setup();
+    renderForm();
+    const toggle = screen.getByRole("button", { name: "Mostrar senha" });
+    expect(toggle).not.toHaveAttribute("aria-pressed");
+
+    await user.click(toggle);
+
+    expect(toggle).toHaveAccessibleName("Ocultar senha");
+    expect(toggle).not.toHaveAttribute("aria-pressed");
   });
 });

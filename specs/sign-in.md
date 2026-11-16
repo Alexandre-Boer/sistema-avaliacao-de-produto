@@ -85,12 +85,20 @@ Fluxo de autenticação implementado de ponta a ponta e verificado contra o proj
 - **Avatar com `next/image` sobre as iniciais locais** em vez do `AvatarImage` do shadcn: as iniciais aparecem enquanto a imagem carrega ou se o DiceBear estiver indisponível.
 - **tRPC e Bun continuam fora:** mesmo motivo da spec de sign-up (paths REST fixados; projeto usa npm).
 
-### Pendências conhecidas (apontadas na revisão final, não corrigidas)
-- Falha de rede no login mostra a mensagem crua do navegador ("Failed to fetch") em vez do texto em português; o mesmo ocorre no cadastro.
-- Falha no `POST /api/v1/sign-out` não gera aviso para a pessoa.
-- Os endpoints de sign-in/sign-out não validam `Origin`/`Content-Type` (login CSRF) e não há limite de tentativas de senha.
-- Acessibilidade: nome acessível do gatilho do menu duplicado em telas ≥ `sm`; `aria-pressed` redundante no botão mostrar/ocultar senha; campos sem `aria-describedby` para o erro; foco não retorna ao gatilho durante o sign-out.
-- O botão "Entrar" reabilita entre a resposta `200` e o fim da navegação.
+### Pendências conhecidas
+Os achados da revisão final foram corrigidos na branch `fix/auth`. O que mudou no comportamento descrito acima:
+- **Checagem de `Origin` (login CSRF):** `POST /api/v1/sign-in` e `POST /api/v1/sign-out` respondem `403 { error: "Origem não permitida" }` quando o header `Origin` está presente e não corresponde ao host da requisição (`x-forwarded-host`, depois `host`); requisição sem `Origin` (curl, testes) continua aceita (`src/lib/http/same-origin.ts`). O sign-in também responde `415` quando o `Content-Type` não é `application/json`.
+- **Limite de tentativas de senha:** cada login que falha por credenciais grava uma linha em `sign_in_attempts` com o e-mail normalizado, exista ou não a conta. Com 5 falhas do mesmo e-mail nos últimos 15 minutos, o sign-in responde `429` com `Retry-After` (segundos) e "Muitas tentativas de login. Tente de novo em N minutos.", sem verificar a senha; login correto apaga as falhas daquele e-mail. Se o banco falhar ao registrar ou consultar as tentativas, o erro é logado e o login segue (`src/server/accounts/sign-in-attempts.ts`).
+- **Mensagens de falha:** falha de rede no login e no cadastro mostra "Não foi possível conectar. Verifique sua conexão e tente de novo." (`src/lib/http/post-json.ts`); falha no sign-out (rede ou status não-2xx) mostra um aviso com `role="alert"` sob o menu do usuário, e a pessoa continua logada.
+- **Acessibilidade:** o gatilho do menu tem o nome completo como único nome acessível (o avatar virou decorativo); o botão mostrar/ocultar senha não usa mais `aria-pressed`; os campos inválidos dos formulários de login e de cadastro apontam para a mensagem de erro com `aria-describedby`; durante o sign-out o gatilho fica `aria-disabled` e recebe o foco de volta.
+- **Duplo envio:** os botões "Entrar" e "Criar conta" continuam desabilitados entre a resposta de sucesso e a navegação.
+
+O que continua em aberto:
+- O limite de tentativas é só por e-mail (não por IP): quem conhece o e-mail de outra pessoa consegue bloquear o login dela por 15 minutos errando a senha 5 vezes, e um atacante que varia os e-mails não é contido.
+- A contagem não é atômica: requisições simultâneas podem passar algumas tentativas além da quinta. A janela usa o relógio da aplicação e o `created_at` usa o do banco.
+- As linhas antigas de `sign_in_attempts` só são apagadas no login bem-sucedido; não há rotina de limpeza.
+- `POST /api/v1/sign-up` não recebeu a checagem de `Origin`/`Content-Type`.
+- As correções de acessibilidade foram verificadas por testes de componente (jsdom), não com leitor de tela nem no navegador.
 
 ### Configuração local
 Além das variáveis do Supabase, `.env.local` precisa de `SESSION_SECRET` com pelo menos 32 caracteres aleatórios.
