@@ -2,6 +2,8 @@
 
 **English** · [Português](README.pt-BR.md)
 
+[![CI](https://github.com/Alexandre-Boer/sistema-avaliacao-de-produto/actions/workflows/ci.yml/badge.svg)](https://github.com/Alexandre-Boer/sistema-avaliacao-de-produto/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 A web application where anyone can browse products and read reviews, signed-in users rate products with a score and a comment, and an AI agent summarizes what customers said about each product.
 
 > Project for the **introductory module of the Postgraduate Program in AI Engineering at [Coders University](https://www.codersuniversity.com.br/)**, a program endorsed by ESIC Internacional. Beyond the product itself, the goal of the module was to practice spec-driven development with AI agents: every feature started as a spec, became a reviewed plan, and only then was implemented.
@@ -174,6 +176,8 @@ npm test          # Vitest: 291 tests in 37 files
 npm run lint      # Biome: lint and formatting
 npm run build     # production build, with type checking
 ```
+
+Every push runs lint, tests and build on GitHub Actions (`.github/workflows/ci.yml`).
 
 The tests cover the validation schemas, the services (with Supabase replaced by test doubles), the endpoints and the components. No test calls an AI model: the agent is replaced by a test double.
 

@@ -2,6 +2,8 @@
 
 [English](README.md) · **Português**
 
+[![CI](https://github.com/Alexandre-Boer/sistema-avaliacao-de-produto/actions/workflows/ci.yml/badge.svg)](https://github.com/Alexandre-Boer/sistema-avaliacao-de-produto/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 Aplicação web em que qualquer pessoa consulta produtos e lê avaliações, pessoas autenticadas avaliam com nota e comentário, e um agente de IA resume o que os clientes disseram sobre cada produto.
 
 > Projeto do **módulo introdutório da Pós-Graduação em Engenharia de IA da [Coders University](https://www.codersuniversity.com.br/)**, curso com chancela da ESIC Internacional. Além do produto em si, o objetivo do módulo foi praticar o desenvolvimento orientado a especificações com agentes de IA: cada funcionalidade nasceu de uma spec, virou um plano revisado e só então foi implementada.
@@ -172,6 +174,8 @@ npm test          # Vitest: 291 testes em 37 arquivos
 npm run lint      # Biome: lint e formatação
 npm run build     # build de produção, com checagem de tipos
 ```
+
+Cada push roda lint, testes e build no GitHub Actions (`.github/workflows/ci.yml`).
 
 Os testes cobrem os schemas de validação, os serviços (com o Supabase substituído por dublês), os endpoints e os componentes. Nenhum teste chama um modelo de IA: o agente é substituído por um dublê.
 
