@@ -1,59 +1,63 @@
-# Sistema de Avaliação de Produto
+# Product Review System
 
-Aplicação web em que qualquer pessoa consulta produtos e lê avaliações, pessoas autenticadas avaliam com nota e comentário, e um agente de IA resume o que os clientes disseram sobre cada produto.
+**English** · [Português](README.pt-BR.md)
 
-> Projeto do **módulo introdutório da Pós-Graduação em Engenharia de IA da [Coders University](https://www.codersuniversity.com.br/)**, curso com chancela da ESIC Internacional. Além do produto em si, o objetivo do módulo foi praticar o desenvolvimento orientado a especificações com agentes de IA: cada funcionalidade nasceu de uma spec, virou um plano revisado e só então foi implementada.
+A web application where anyone can browse products and read reviews, signed-in users rate products with a score and a comment, and an AI agent summarizes what customers said about each product.
 
-![Demonstração: lista de produtos, página do produto com o resumo da IA, login e envio de uma avaliação](docs/assets/demo.gif)
+> Project for the **introductory module of the Postgraduate Program in AI Engineering at [Coders University](https://www.codersuniversity.com.br/)**, a program endorsed by ESIC Internacional. Beyond the product itself, the goal of the module was to practice spec-driven development with AI agents: every feature started as a spec, became a reviewed plan, and only then was implemented.
 
-## Índice
+![Demo: product list, product page with the AI summary, sign-in and submitting a review](docs/assets/demo.gif)
 
-- [Funcionalidades](#funcionalidades)
-- [Tecnologias](#tecnologias)
-- [Como rodar](#como-rodar)
-- [Resumo da IA](#resumo-da-ia)
-- [Importação de produtos com n8n](#importação-de-produtos-com-n8n)
+The application interface, the specs, the plans and the commit history are in Brazilian Portuguese, the language of the course.
+
+## Table of contents
+
+- [Features](#features)
+- [Tech stack](#tech-stack)
+- [Getting started](#getting-started)
+- [AI summary](#ai-summary)
+- [Importing products with n8n](#importing-products-with-n8n)
 - [API](#api)
-- [Testes e qualidade](#testes-e-qualidade)
-- [Estrutura do projeto](#estrutura-do-projeto)
-- [Decisões de projeto](#decisões-de-projeto)
-- [Processo de desenvolvimento](#processo-de-desenvolvimento)
-- [Limitações conhecidas](#limitações-conhecidas)
-- [Licença](#licença)
-- [Autor](#autor)
+- [Tests and code quality](#tests-and-code-quality)
+- [Project structure](#project-structure)
+- [Design decisions](#design-decisions)
+- [Development process](#development-process)
+- [Known limitations](#known-limitations)
+- [License](#license)
+- [Author](#author)
 
-## Funcionalidades
+## Features
 
-- **Cadastro e login** com e-mail e senha. A senha é guardada com bcrypt e a sessão fica em um cookie HttpOnly assinado.
-- **Lista pública de produtos** com rolagem infinita.
-- **Página do produto** com imagem, descrição, link para a loja, nota média, distribuição das notas e as avaliações mais recentes.
-- **Avaliações** de 1 a 5 estrelas com comentário, uma por pessoa por produto, apenas para quem está autenticado.
-- **Resumo da IA**: um agente [Mastra](https://mastra.ai) lê as avaliações e escreve um resumo geral, exibido em destaque entre as informações do produto e as avaliações.
-- **Importação automática de produtos**: um fluxo do [n8n](https://n8n.io) lê uma página pública de ofertas e cadastra os produtos pela API.
+- **Sign-up and sign-in** with e-mail and password. Passwords are stored with bcrypt and the session lives in a signed HttpOnly cookie.
+- **Public product list** with infinite scrolling.
+- **Product page** with image, description, link to the store, average score, score distribution and the most recent reviews.
+- **Reviews** from 1 to 5 stars with a comment, one per person per product, for signed-in users only.
+- **AI summary**: a [Mastra](https://mastra.ai) agent reads the reviews and writes an overall summary, highlighted between the product information and the reviews.
+- **Automated product import**: an [n8n](https://n8n.io) workflow reads a public deals page and registers the products through the API.
 
-![Página do produto com o bloco "Resumo da IA"](docs/assets/produto-resumo-ia.png)
+![Product page with the "Resumo da IA" (AI summary) block](docs/assets/produto-resumo-ia.png)
 
-## Tecnologias
+## Tech stack
 
-| Camada | Ferramentas |
+| Layer | Tools |
 | --- | --- |
 | Interface | Next.js 16 (App Router, Cache Components), React 19, Tailwind CSS 4, shadcn/ui, Phosphor Icons |
-| Formulários e dados | React Hook Form, Zod 4, TanStack Query |
-| Servidor | Route Handlers do Next.js, `jose` (JWT), `bcryptjs` |
-| Banco de dados | Supabase (PostgreSQL), acessado só pelo servidor |
-| IA | Mastra (`@mastra/core`) com OpenAI `gpt-4o-mini` ou um modelo local via Ollama |
-| Automação | n8n em Docker |
-| Qualidade | TypeScript estrito, Vitest, Testing Library, Biome |
+| Forms and data | React Hook Form, Zod 4, TanStack Query |
+| Server | Next.js Route Handlers, `jose` (JWT), `bcryptjs` |
+| Database | Supabase (PostgreSQL), accessed only by the server |
+| AI | Mastra (`@mastra/core`) with OpenAI `gpt-4o-mini` or a local model through Ollama |
+| Automation | n8n on Docker |
+| Quality | Strict TypeScript, Vitest, Testing Library, Biome |
 
-## Como rodar
+## Getting started
 
-### Pré-requisitos
+### Prerequisites
 
-- Node.js 22.13 ou mais recente
-- Uma conta no [Supabase](https://supabase.com) (o plano gratuito basta)
-- Docker, apenas para o resumo da IA local e para o n8n
+- Node.js 22.13 or later
+- A [Supabase](https://supabase.com) account (the free plan is enough)
+- Docker, only for the local AI summary and for n8n
 
-### 1. Instalar as dependências
+### 1. Install the dependencies
 
 ```bash
 git clone https://github.com/Alexandre-Boer/sistema-avaliacao-de-produto.git
@@ -61,48 +65,48 @@ cd sistema-avaliacao-de-produto
 npm install
 ```
 
-### 2. Criar o banco
+### 2. Create the database
 
-Crie um projeto no Supabase e execute, em ordem, os arquivos de `supabase/migrations/` no **SQL Editor** do painel. Com a [CLI do Supabase](https://supabase.com/docs/guides/cli), o equivalente é:
+Create a Supabase project and run the files in `supabase/migrations/`, in order, in the dashboard's **SQL Editor**. With the [Supabase CLI](https://supabase.com/docs/guides/cli), the equivalent is:
 
 ```bash
-supabase link --project-ref <ref-do-projeto>
+supabase link --project-ref <project-ref>
 supabase db push
 ```
 
-As migrações criam as tabelas `accounts`, `products`, `products_feedbacks`, `sign_in_attempts` e `products_ai_summaries`, todas com RLS habilitado.
+The migrations create the `accounts`, `products`, `products_feedbacks`, `sign_in_attempts` and `products_ai_summaries` tables, all with RLS enabled.
 
-### 3. Configurar o ambiente
+### 3. Configure the environment
 
 ```bash
 cp .env.example .env.local
 ```
 
-| Variável | Obrigatória | Descrição |
+| Variable | Required | Description |
 | --- | --- | --- |
-| `NEXT_PUBLIC_SUPABASE_URL` | sim | URL do projeto no Supabase |
-| `SUPABASE_SERVICE_ROLE_KEY` | sim | Chave `service_role`. Fica só no servidor |
-| `SESSION_SECRET` | sim | Segredo aleatório e longo que assina o cookie de sessão |
-| `AI_SUMMARY_MODEL` | não | Modelo do resumo, no formato `provedor/modelo`. Padrão: `openai/gpt-4o-mini` |
-| `AI_SUMMARY_BASE_URL` | não | Endereço de uma API compatível com a da OpenAI (por exemplo, o Ollama local) |
-| `AI_SUMMARY_API_KEY` | não | Chave para o endereço acima, quando ele exige |
-| `OPENAI_API_KEY` | não | Chave da OpenAI, para os modelos `openai/...` |
+| `NEXT_PUBLIC_SUPABASE_URL` | yes | URL of the Supabase project |
+| `SUPABASE_SERVICE_ROLE_KEY` | yes | The `service_role` key. Server-side only |
+| `SESSION_SECRET` | yes | Long random secret that signs the session cookie |
+| `AI_SUMMARY_MODEL` | no | Summary model, in `provider/model` format. Default: `openai/gpt-4o-mini` |
+| `AI_SUMMARY_BASE_URL` | no | Address of an OpenAI-compatible API (for example, a local Ollama) |
+| `AI_SUMMARY_API_KEY` | no | Key for the address above, when it requires one |
+| `OPENAI_API_KEY` | no | OpenAI key, for `openai/...` models |
 
-### 4. Subir a aplicação
+### 4. Run the application
 
 ```bash
 npm run dev
 ```
 
-Abra [http://localhost:3000](http://localhost:3000). Para o build de produção: `npm run build` e `npm run start`.
+Open [http://localhost:3000](http://localhost:3000). For a production build: `npm run build` and `npm run start`.
 
-O banco começa vazio. Cadastre produtos pela [API](#api) ou pelo [fluxo do n8n](#importação-de-produtos-com-n8n).
+The database starts empty. Register products through the [API](#api) or with the [n8n workflow](#importing-products-with-n8n).
 
-## Resumo da IA
+## AI summary
 
-O bloco aparece nos produtos com 3 ou mais avaliações. O agente está em `src/mastra/agents/feedback-summary-agent.ts` e o modelo é escolhido por variável de ambiente, então trocar de provedor não muda código.
+The block appears on products with 3 or more reviews. The agent lives in `src/mastra/agents/feedback-summary-agent.ts` and the model is chosen by environment variable, so switching providers does not change any code.
 
-**Modelo local gratuito (Ollama):**
+**Free local model (Ollama):**
 
 ```bash
 docker compose -f ollama/docker-compose.yml up -d
@@ -115,122 +119,122 @@ AI_SUMMARY_MODEL=custom/gemma3:4b
 AI_SUMMARY_BASE_URL=http://localhost:11434/v1
 ```
 
-O `docker-compose.yml` reserva uma GPU NVIDIA. Sem GPU, remova o bloco `deploy` e o modelo roda na CPU, mais devagar.
+The `docker-compose.yml` reserves an NVIDIA GPU. Without a GPU, remove the `deploy` block and the model runs on the CPU, more slowly.
 
-**OpenAI:** remova as duas variáveis acima e defina `OPENAI_API_KEY`. O padrão é `openai/gpt-4o-mini`.
+**OpenAI:** remove the two variables above and set `OPENAI_API_KEY`. The default is `openai/gpt-4o-mini`.
 
-Como funciona:
+How it works:
 
-1. A página do produto pede o resumo em um `<Suspense>` próprio, então o cabeçalho e as avaliações nunca esperam pela IA.
-2. O resumo fica guardado na tabela `products_ai_summaries`, junto com a quantidade de avaliações que ele cobriu.
-3. O modelo só é chamado de novo quando essa quantidade muda, ou seja, quando chega avaliação nova.
-4. Se a IA não está configurada, falha ou demora mais de 30 segundos, o bloco não aparece e o resto da página segue normal.
+1. The product page requests the summary inside its own `<Suspense>`, so the header and the reviews never wait for the AI.
+2. The summary is stored in the `products_ai_summaries` table, together with the number of reviews it covered.
+3. The model is only called again when that number changes, that is, when a new review arrives.
+4. If the AI is not configured, fails, or takes longer than 30 seconds, the block does not appear and the rest of the page works as usual.
 
-## Importação de produtos com n8n
+## Importing products with n8n
 
 ```bash
 docker compose -f n8n/docker-compose.yml up -d
 docker exec sap-n8n n8n import:workflow --input=/workflows/amazon-deals.json
 ```
 
-Abra [http://localhost:5678](http://localhost:5678), crie o usuário local e execute o fluxo **Ofertas da Amazon → Produtos**. A aplicação precisa estar rodando na porta 3000.
+Open [http://localhost:5678](http://localhost:5678), create the local user and run the **Ofertas da Amazon → Produtos** workflow. The application must be running on port 3000.
 
-O fluxo baixa o HTML de uma página pública de ofertas, extrai nome, preço, nota, link e imagem de cada produto, descarta os que já estão cadastrados (pelo link) e envia os novos para `POST /api/v1/products`.
+The workflow downloads the HTML of a public deals page, extracts the name, price, rating, link and image of each product, drops the ones already registered (by link) and sends the new ones to `POST /api/v1/products`.
 
-É um exercício de automação do curso. Antes de usar algo parecido fora de um ambiente de estudo, confira os termos de uso do site de origem.
+This is an automation exercise from the course. Before using something similar outside a study environment, check the terms of use of the source site.
 
 ## API
 
-| Método | Rota | Autenticação | Descrição |
+| Method | Route | Authentication | Description |
 | --- | --- | --- | --- |
-| `POST` | `/api/v1/sign-up` | não | Cria uma conta |
-| `POST` | `/api/v1/sign-in` | não | Autentica e grava o cookie de sessão |
-| `POST` | `/api/v1/sign-out` | não | Encerra a sessão |
-| `GET` | `/api/v1/products?limit=12&offset=0` | não | Lista produtos, com paginação |
-| `POST` | `/api/v1/products` | não (ver [limitações](#limitações-conhecidas)) | Cadastra um produto |
-| `POST` | `/api/v1/products/:id/feedbacks` | sim | Avalia um produto |
+| `POST` | `/api/v1/sign-up` | no | Creates an account |
+| `POST` | `/api/v1/sign-in` | no | Authenticates and sets the session cookie |
+| `POST` | `/api/v1/sign-out` | no | Ends the session |
+| `GET` | `/api/v1/products?limit=12&offset=0` | no | Lists products, paginated |
+| `POST` | `/api/v1/products` | no (see [known limitations](#known-limitations)) | Registers a product |
+| `POST` | `/api/v1/products/:id/feedbacks` | yes | Reviews a product |
 
-Exemplo de cadastro de produto:
+Example of registering a product:
 
 ```bash
 curl -X POST http://localhost:3000/api/v1/products \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "Fone de ouvido sem fio",
-    "description": "Cancelamento de ruído e 30 horas de bateria.",
-    "externalLink": "https://exemplo.com/fone",
-    "imageUrl": "https://exemplo.com/fone.jpg"
+    "name": "Wireless headphones",
+    "description": "Noise cancelling and 30 hours of battery life.",
+    "externalLink": "https://example.com/headphones",
+    "imageUrl": "https://example.com/headphones.jpg"
   }'
 ```
 
-## Testes e qualidade
+## Tests and code quality
 
 ```bash
-npm test          # Vitest: 291 testes em 37 arquivos
-npm run lint      # Biome: lint e formatação
-npm run build     # build de produção, com checagem de tipos
+npm test          # Vitest: 291 tests in 37 files
+npm run lint      # Biome: lint and formatting
+npm run build     # production build, with type checking
 ```
 
-Os testes cobrem os schemas de validação, os serviços (com o Supabase substituído por dublês), os endpoints e os componentes. Nenhum teste chama um modelo de IA: o agente é substituído por um dublê.
+The tests cover the validation schemas, the services (with Supabase replaced by test doubles), the endpoints and the components. No test calls an AI model: the agent is replaced by a test double.
 
-## Estrutura do projeto
+## Project structure
 
 ```
 src/
   app/
-    (site)/            páginas com o cabeçalho do site: lista e detalhe do produto
-    auth/              páginas de login e cadastro
+    (site)/            pages with the site header: product list and product page
+    auth/              sign-in and sign-up pages
     api/v1/            endpoints
-  components/          componentes por domínio (products, feedback, layout, ui)
-  lib/                 sessão, senha, validação (Zod), cliente do Supabase
-  mastra/              agente de IA e escolha do modelo
-  server/              regras de negócio por domínio (accounts, products, feedbacks, ai-summary)
-supabase/migrations/   esquema do banco
-n8n/                   docker-compose e fluxo de importação
-ollama/                docker-compose do modelo local
-specs/                 especificação de cada funcionalidade
-docs/                  arquitetura e planos de implementação
+  components/          components by domain (products, feedback, layout, ui)
+  lib/                 session, password, validation (Zod), Supabase client
+  mastra/              AI agent and model selection
+  server/              business rules by domain (accounts, products, feedbacks, ai-summary)
+supabase/migrations/   database schema
+n8n/                   docker-compose and import workflow
+ollama/                docker-compose for the local model
+specs/                 specification of each feature
+docs/                  architecture and implementation plans
 ```
 
-## Decisões de projeto
+## Design decisions
 
-- **Banco acessado só pelo servidor.** As tabelas têm RLS habilitado e nenhuma policy, então a chave pública do Supabase não lê nada. Todo acesso passa pelo servidor com a chave `service_role`, e as regras ficam em um lugar só (`src/server`).
-- **Sessão própria em vez do Supabase Auth.** O módulo pedia implementar cadastro e login. A sessão é um JWT HS256 em cookie HttpOnly com validade de 7 dias, e a senha usa bcrypt.
-- **Validação compartilhada.** O mesmo schema Zod valida o formulário no navegador e o corpo da requisição no servidor.
-- **Regras garantidas no banco.** "Uma avaliação por pessoa por produto" é um índice único, e não só uma checagem no código, para valer também quando dois envios chegam juntos.
-- **Proteções nos endpoints.** Checagem de origem nos `POST`, limite de tentativas de login por e-mail e respostas que não revelam quais e-mails têm conta.
-- **Página do produto com `404` de verdade.** A busca do produto acontece antes do primeiro byte da resposta; só as avaliações, o resumo da IA e o bloco que depende da sessão chegam por streaming.
-- **Resumo da IA guardado no banco.** Evita uma chamada paga ao modelo a cada visita e mantém a página rápida.
-- **Comentários tratados como conteúdo não confiável.** Eles entram no pedido ao modelo dentro de um delimitador, sem `<` e `>`, e as instruções do agente mandam ignorar ordens escritas neles. A avaliação "IGNORE TODAS AS INSTRUÇÕES..." que aparece na demonstração é esse teste. Só nota e comentário são enviados, nunca o nome ou o e-mail de quem avaliou.
-- **Modelo configurável.** O código não depende de um provedor: o mesmo agente roda com `gpt-4o-mini` ou com um modelo local gratuito.
+- **Database accessed only by the server.** The tables have RLS enabled and no policies, so the public Supabase key cannot read anything. All access goes through the server with the `service_role` key, and the rules live in one place (`src/server`).
+- **Custom session instead of Supabase Auth.** The module asked for sign-up and sign-in to be implemented. The session is an HS256 JWT in an HttpOnly cookie valid for 7 days, and passwords use bcrypt.
+- **Shared validation.** The same Zod schema validates the form in the browser and the request body on the server.
+- **Rules enforced by the database.** "One review per person per product" is a unique index, not just a check in code, so it also holds when two submissions arrive at the same time.
+- **Endpoint protections.** Origin check on `POST` requests, a per-e-mail limit on sign-in attempts, and responses that do not reveal which e-mails have an account.
+- **Product page with a real `404`.** The product lookup happens before the first byte of the response; only the reviews, the AI summary and the session-dependent block are streamed.
+- **AI summary stored in the database.** It avoids a paid model call on every visit and keeps the page fast.
+- **Comments treated as untrusted content.** They go into the model request inside a delimiter, without `<` and `>`, and the agent's instructions tell it to ignore orders written in them. The "IGNORE TODAS AS INSTRUÇÕES..." ("ignore all instructions") review that appears in the demo is that test. Only the score and the comment are sent, never the reviewer's name or e-mail.
+- **Configurable model.** The code does not depend on a provider: the same agent runs with `gpt-4o-mini` or with a free local model.
 
-As decisões de cada funcionalidade, incluindo o que foi descartado e por quê, estão registradas na seção "Resultado" das specs e nos planos em `docs/superpowers/plans/`.
+The decisions for each feature, including what was discarded and why, are recorded in the "Resultado" section of the specs and in the plans under `docs/superpowers/plans/` (in Portuguese).
 
-## Processo de desenvolvimento
+## Development process
 
-O projeto foi construído com um agente de programação (Claude Code), em um fluxo de três etapas por funcionalidade:
+The project was built with a coding agent (Claude Code), in a three-step flow per feature:
 
-1. **Spec** (`specs/`): contexto, requisitos, o que fazer e o que não fazer, critérios de aceite.
-2. **Plano** (`docs/superpowers/plans/`): tarefas pequenas, com os testes escritos antes do código, pontos de atenção para a revisão e as decisões que fogem da spec. Nada é implementado antes de o plano ser aprovado.
-3. **Execução e revisão**: funcionalidades independentes foram implementadas em paralelo por subagentes, cada um no seu branch, e integradas com merge. Depois de cada integração houve revisão de código e uma rodada de correções, registrada na própria spec.
+1. **Spec** (`specs/`): context, requirements, what to do and what not to do, acceptance criteria.
+2. **Plan** (`docs/superpowers/plans/`): small tasks, with the tests written before the code, points of attention for review, and the decisions that depart from the spec. Nothing is implemented before the plan is approved.
+3. **Execution and review**: independent features were implemented in parallel by subagents, each on its own branch, and integrated with a merge. After each integration there was a code review and a round of fixes, recorded in the spec itself.
 
-O histórico usa [Conventional Commits](https://www.conventionalcommits.org/pt-br/) em português (`feat:`, `fix:`, `docs:`, `test:`, `merge:`).
+The history follows [Conventional Commits](https://www.conventionalcommits.org/) in Portuguese (`feat:`, `fix:`, `docs:`, `test:`, `merge:`).
 
-## Limitações conhecidas
+## Known limitations
 
-- **`POST /api/v1/products` não exige autenticação.** Foi uma decisão do escopo do curso, para o fluxo do n8n cadastrar produtos sem credenciais. Em produção esse endpoint precisaria de autenticação ou de uma chave de API.
-- **Qualidade do resumo com modelo local.** Um modelo pequeno às vezes generaliza além do que os comentários dizem. O bloco sempre avisa que o texto foi gerado por IA e pode conter imprecisões.
-- **O resumo é gerado na visita.** Quem abre a página logo depois de uma avaliação nova espera alguns segundos pelo bloco.
-- **Limite de tentativas de login por e-mail.** Não há limite por IP, então alguém pode bloquear temporariamente o login de outra pessoa.
-- **Sem recuperação de senha e sem confirmação de e-mail.**
-- **O `404` da página do produto usa uma API ainda instável do Next.js** (`unstable_paramMatching`), que pode mudar em uma atualização.
+- **`POST /api/v1/products` does not require authentication.** This was a decision within the scope of the course, so the n8n workflow can register products without credentials. In production this endpoint would need authentication or an API key.
+- **Summary quality with a local model.** A small model sometimes generalizes beyond what the comments say. The block always states that the text was generated by AI and may contain inaccuracies.
+- **The summary is generated on visit.** Whoever opens the page right after a new review waits a few seconds for the block.
+- **Sign-in attempt limit is per e-mail.** There is no per-IP limit, so someone can temporarily block another person's sign-in.
+- **No password recovery and no e-mail confirmation.**
+- **The product page's `404` relies on a still-unstable Next.js API** (`unstable_paramMatching`), which may change in an update.
 
-## Licença
+## License
 
-Distribuído sob a licença [MIT](LICENSE).
+Distributed under the [MIT](LICENSE) license.
 
-## Autor
+## Author
 
 **Alexandre Boer** · [GitHub](https://github.com/Alexandre-Boer)
 
-Projeto desenvolvido para fins de estudo no módulo introdutório da Pós-Graduação em Engenharia de IA da Coders University (chancela ESIC Internacional).
+Project developed for study purposes in the introductory module of the Postgraduate Program in AI Engineering at Coders University (endorsed by ESIC Internacional).
