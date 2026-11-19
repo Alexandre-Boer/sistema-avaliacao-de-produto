@@ -1,5 +1,5 @@
 # n8n local para automatizar a importação de produtos.
-# Subir:  docker compose -f n8n/docker-compose.yml up -d
+# Subir:  docker compose -f infra/n8n/docker-compose.yml up -d
 # Abrir:  http://localhost:5678
 name: sap-n8n
 

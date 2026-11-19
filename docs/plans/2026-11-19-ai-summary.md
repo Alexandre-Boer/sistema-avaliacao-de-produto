@@ -12,7 +12,7 @@
 
 ## Ajustes feitos na execução (19/11/2026)
 
-- **Modelo dos testes:** a pedido do usuário, um modelo gratuito. Foi usado `gemma3:4b` local via Ollama (`ollama/docker-compose.yml`), apontado por `AI_SUMMARY_BASE_URL`. O padrão do código segue `openai/gpt-4o-mini`.
+- **Modelo dos testes:** a pedido do usuário, um modelo gratuito. Foi usado `gemma3:4b` local via Ollama (`infra/ollama/docker-compose.yml`), apontado por `AI_SUMMARY_BASE_URL`. O padrão do código segue `openai/gpt-4o-mini`.
 - **Sem `src/mastra/index.ts`:** a instância `Mastra` avisava a cada processo que não havia armazenamento configurado; o agente não usa memória, então é importado direto.
 - **Limite de tempo de 30 s** (em vez de 20 s), por causa da carga inicial do modelo local.
 - **Teto por caracteres:** além das 200 avaliações lidas, o pedido leva no máximo 8.000 caracteres de comentários, para caber na janela de contexto de um modelo local.

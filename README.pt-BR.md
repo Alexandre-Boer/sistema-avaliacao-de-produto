@@ -107,7 +107,7 @@ O bloco aparece nos produtos com 3 ou mais avaliações. O agente está em `src/
 **Modelo local gratuito (Ollama):**
 
 ```bash
-docker compose -f ollama/docker-compose.yml up -d
+docker compose -f infra/ollama/docker-compose.yml up -d
 docker exec sap-ollama ollama pull gemma3:4b
 ```
 
@@ -131,7 +131,7 @@ Como funciona:
 ## Importação de produtos com n8n
 
 ```bash
-docker compose -f n8n/docker-compose.yml up -d
+docker compose -f infra/n8n/docker-compose.yml up -d
 docker exec sap-n8n n8n import:workflow --input=/workflows/amazon-deals.json
 ```
 
@@ -188,10 +188,14 @@ src/
   mastra/              agente de IA e escolha do modelo
   server/              regras de negócio por domínio (accounts, products, feedbacks, ai-summary)
 supabase/migrations/   esquema do banco
-n8n/                   docker-compose e fluxo de importação
-ollama/                docker-compose do modelo local
-docs/specs/                 especificação de cada funcionalidade
-docs/                  arquitetura e planos de implementação
+infra/
+  n8n/                 docker-compose e fluxo de importação
+  ollama/              docker-compose do modelo local
+docs/
+  ARCHITECTURE.md      visão geral da arquitetura
+  specs/               especificação de cada funcionalidade
+  plans/               plano de implementação de cada funcionalidade
+  assets/              vídeo de demonstração e capturas de tela
 ```
 
 ## Decisões de projeto

@@ -1,5 +1,5 @@
 # Ollama local: modelo de linguagem gratuito para o resumo da IA em desenvolvimento.
-# Subir:          docker compose -f ollama/docker-compose.yml up -d
+# Subir:          docker compose -f infra/ollama/docker-compose.yml up -d
 # Baixar modelo:  docker exec sap-ollama ollama pull gemma3:4b
 # API compatível com a da OpenAI em http://localhost:11434/v1
 name: sap-ollama

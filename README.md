@@ -109,7 +109,7 @@ The block appears on products with 3 or more reviews. The agent lives in `src/ma
 **Free local model (Ollama):**
 
 ```bash
-docker compose -f ollama/docker-compose.yml up -d
+docker compose -f infra/ollama/docker-compose.yml up -d
 docker exec sap-ollama ollama pull gemma3:4b
 ```
 
@@ -133,7 +133,7 @@ How it works:
 ## Importing products with n8n
 
 ```bash
-docker compose -f n8n/docker-compose.yml up -d
+docker compose -f infra/n8n/docker-compose.yml up -d
 docker exec sap-n8n n8n import:workflow --input=/workflows/amazon-deals.json
 ```
 
@@ -190,10 +190,14 @@ src/
   mastra/              AI agent and model selection
   server/              business rules by domain (accounts, products, feedbacks, ai-summary)
 supabase/migrations/   database schema
-n8n/                   docker-compose and import workflow
-ollama/                docker-compose for the local model
-docs/specs/                 specification of each feature
-docs/                  architecture and implementation plans
+infra/
+  n8n/                 docker-compose and import workflow
+  ollama/              docker-compose for the local model
+docs/
+  ARCHITECTURE.md      architecture overview
+  specs/               specification of each feature
+  plans/               implementation plan of each feature
+  assets/              demo video and screenshots
 ```
 
 ## Design decisions
