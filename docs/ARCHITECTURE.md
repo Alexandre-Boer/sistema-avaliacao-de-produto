@@ -27,3 +27,8 @@ Vercel: Hospedar tanto o servido (API) quanto cliente (SPA)
 
 ## Automação
 - n8n: Criação de fluxos automatizados
+
+## Inteligência Artificial
+- Mastra (`@mastra/core`): definição do agente que resume as avaliações de um produto (`src/mastra/agents/feedback-summary-agent.ts`)
+- Modelo configurável por variável de ambiente: `openai/gpt-4o-mini` por padrão; em desenvolvimento, um modelo local gratuito via Ollama (`ollama/docker-compose.yml`)
+- O resumo fica guardado na tabela `products_ai_summaries` e só é refeito quando chega avaliação nova

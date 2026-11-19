@@ -13,10 +13,7 @@
       "name": "Sobre este workflow",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
-      "position": [
-        -80,
-        -420
-      ]
+      "position": [-80, -420]
     },
     {
       "parameters": {},
@@ -24,10 +21,7 @@
       "name": "Executar manualmente",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
-      "position": [
-        0,
-        0
-      ]
+      "position": [0, 0]
     },
     {
       "parameters": {
@@ -44,10 +38,7 @@
       "name": "A cada 6 horas",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
-      "position": [
-        0,
-        200
-      ]
+      "position": [0, 200]
     },
     {
       "parameters": {
@@ -73,10 +64,7 @@
       "name": "Configuração",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [
-        220,
-        100
-      ]
+      "position": [220, 100]
     },
     {
       "parameters": {
@@ -111,10 +99,7 @@
       "name": "Buscar página de ofertas",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        440,
-        100
-      ],
+      "position": [440, 100],
       "retryOnFail": true,
       "maxTries": 3,
       "waitBetweenTries": 3000
@@ -127,10 +112,7 @@
       "name": "Mapear produtos",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        660,
-        100
-      ]
+      "position": [660, 100]
     },
     {
       "parameters": {
@@ -169,10 +151,7 @@
       "name": "Listar produtos existentes",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        880,
-        100
-      ],
+      "position": [880, 100],
       "executeOnce": true
     },
     {
@@ -183,10 +162,7 @@
       "name": "Filtrar produtos novos",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        1100,
-        100
-      ]
+      "position": [1100, 100]
     },
     {
       "parameters": {
@@ -208,10 +184,7 @@
       "name": "Cadastrar produto",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        1320,
-        100
-      ],
+      "position": [1320, 100],
       "onError": "continueRegularOutput"
     },
     {
@@ -222,10 +195,7 @@
       "name": "Resumo",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        1540,
-        100
-      ]
+      "position": [1540, 100]
     }
   ],
   "connections": {
