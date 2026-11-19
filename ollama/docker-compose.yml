@@ -1,0 +1,34 @@
+# Ollama local: modelo de linguagem gratuito para o resumo da IA em desenvolvimento.
+# Subir:          docker compose -f ollama/docker-compose.yml up -d
+# Baixar modelo:  docker exec sap-ollama ollama pull gemma3:4b
+# API compatível com a da OpenAI em http://localhost:11434/v1
+name: sap-ollama
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: sap-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    environment:
+      # Janela de contexto do modelo, em tokens. O padrão do Ollama para placas de
+      # 8 GB é 4096, pouco para um pedido com dezenas de avaliações.
+      - OLLAMA_CONTEXT_LENGTH=8192
+      # Mantém o modelo carregado na memória entre um pedido e outro.
+      - OLLAMA_KEEP_ALIVE=30m
+    volumes:
+      # Modelos baixados (alguns GB); ficam fora do repositório.
+      - ollama_data:/root/.ollama
+    # Usa a placa de vídeo NVIDIA quando o Docker tem acesso a ela.
+    # Sem GPU, remova este bloco: o modelo roda na CPU, mais devagar.
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+volumes:
+  ollama_data:
