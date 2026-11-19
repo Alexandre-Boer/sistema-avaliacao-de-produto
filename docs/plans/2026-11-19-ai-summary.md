@@ -8,7 +8,7 @@
 
 **Tech Stack:** Next.js 16 (App Router, `cacheComponents`), `@mastra/core`, OpenAI via roteador de modelos do Mastra (`OPENAI_API_KEY`), Supabase, shadcn/ui (`card`, `badge`, `skeleton` já instalados), Vitest.
 
-**Spec:** `specs/ai-summary.md`
+**Spec:** `docs/specs/ai-summary.md`
 
 ## Ajustes feitos na execução (19/11/2026)
 
@@ -151,7 +151,7 @@ alter table public.products_ai_summaries enable row level security;
 - [ ] **Step 2:** Com `OPENAI_API_KEY` em `.env.local` e um produto com 3 ou mais avaliações (criadas por contas de teste), abrir `/products/<id>` no navegador: o bloco aparece entre o cabeçalho e a lista; uma segunda visita não chama o modelo (conferir `generated_at`); uma avaliação nova atualiza o resumo.
 - [ ] **Step 3:** Produto com menos de 3 avaliações: sem bloco. Sem a chave: página normal, sem bloco, erro só no log.
 - [ ] **Step 4:** Enviar uma avaliação com tentativa de injeção e conferir que o resumo não a obedece.
-- [ ] **Step 5:** Preencher "Resultado" em `specs/ai-summary.md`, documentar `OPENAI_API_KEY` e `AI_SUMMARY_MODEL` no `README.md` e atualizar `docs/ARCHITECTURE.md`.
+- [ ] **Step 5:** Preencher "Resultado" em `docs/specs/ai-summary.md`, documentar `OPENAI_API_KEY` e `AI_SUMMARY_MODEL` no `README.md` e atualizar `docs/ARCHITECTURE.md`.
 - [ ] **Step 6: Commit** — `docs: registra o resumo da IA na spec e na arquitetura`
 
 ## Execução

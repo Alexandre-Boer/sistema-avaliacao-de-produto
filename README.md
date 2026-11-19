@@ -192,7 +192,7 @@ src/
 supabase/migrations/   database schema
 n8n/                   docker-compose and import workflow
 ollama/                docker-compose for the local model
-specs/                 specification of each feature
+docs/specs/                 specification of each feature
 docs/                  architecture and implementation plans
 ```
 
@@ -208,14 +208,14 @@ docs/                  architecture and implementation plans
 - **Comments treated as untrusted content.** They go into the model request inside a delimiter, without `<` and `>`, and the agent's instructions tell it to ignore orders written in them. The "IGNORE TODAS AS INSTRUÇÕES..." ("ignore all instructions") review that appears in the demo is that test. Only the score and the comment are sent, never the reviewer's name or e-mail.
 - **Configurable model.** The code does not depend on a provider: the same agent runs with `gpt-4o-mini` or with a free local model.
 
-The decisions for each feature, including what was discarded and why, are recorded in the "Resultado" section of the specs and in the plans under `docs/superpowers/plans/` (in Portuguese).
+The decisions for each feature, including what was discarded and why, are recorded in the "Resultado" section of the specs and in the plans under `docs/plans/` (in Portuguese).
 
 ## Development process
 
 The project was built with a coding agent (Claude Code), in a three-step flow per feature:
 
-1. **Spec** (`specs/`): context, requirements, what to do and what not to do, acceptance criteria.
-2. **Plan** (`docs/superpowers/plans/`): small tasks, with the tests written before the code, points of attention for review, and the decisions that depart from the spec. Nothing is implemented before the plan is approved.
+1. **Spec** (`docs/specs/`): context, requirements, what to do and what not to do, acceptance criteria.
+2. **Plan** (`docs/plans/`): small tasks, with the tests written before the code, points of attention for review, and the decisions that depart from the spec. Nothing is implemented before the plan is approved.
 3. **Execution and review**: independent features were implemented in parallel by subagents, each on its own branch, and integrated with a merge. After each integration there was a code review and a round of fixes, recorded in the spec itself.
 
 The history follows [Conventional Commits](https://www.conventionalcommits.org/) in Portuguese (`feat:`, `fix:`, `docs:`, `test:`, `merge:`).

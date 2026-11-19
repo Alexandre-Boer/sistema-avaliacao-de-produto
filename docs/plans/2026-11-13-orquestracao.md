@@ -5,9 +5,9 @@
 **Por que uma Fase 0:** as specs se sobrepõem. Sign-in e Home disputam a página inicial; Feedback precisa da sessão (Sign-in) e da tabela `products` (Home). Sem contratos prévios, os três agentes criariam versões divergentes dos mesmos arquivos e o merge viraria retrabalho. A Fase 0 cria esses contratos uma única vez no `main`; os planos consomem interfaces fixas e cada arquivo tem um único dono.
 
 **Planos das features:**
-- `docs/superpowers/plans/2026-11-13-sign-in.md`
-- `docs/superpowers/plans/2026-11-13-home.md`
-- `docs/superpowers/plans/2026-11-13-feedback.md`
+- `docs/plans/2026-11-13-sign-in.md`
+- `docs/plans/2026-11-13-home.md`
+- `docs/plans/2026-11-13-feedback.md`
 
 ---
 
@@ -15,7 +15,7 @@
 
 Executada após a aprovação dos planos e antes do dispatch. Um commit por item.
 
-1. **Specs:** `git mv specs/*.md.txt` → `specs/*.md` (padrão do repo; cada agente escreve a seção `## Resultado` na sua própria spec ao final).
+1. **Specs:** `git mv docs/specs/*.md.txt` → `docs/specs/*.md` (padrão do repo; cada agente escreve a seção `## Resultado` na sua própria spec ao final).
 2. **Migrations (escritas e aplicadas no projeto Supabase `sistema-avaliacao-produtos`):**
    - `supabase/migrations/20261113000000_create_products.sql`: `id text pk`, `name text not null`, `description text`, `image_url text`, `external_link text not null`, `score boolean not null default false`, `created_at/updated_at timestamptz default now()`; índice `(created_at desc, id desc)`; RLS habilitado sem policies.
    - `supabase/migrations/20261113000100_create_products_feedbacks.sql`: `id text pk`, `score integer not null check (score between 1 and 5)`, `comment text not null`, `created_at timestamptz default now()`, `created_by text not null references accounts(id)`, `product_id text not null references products(id) on delete cascade`; índice `(product_id, created_at desc)`; RLS habilitado sem policies.
@@ -50,7 +50,7 @@ Executada após a aprovação dos planos e antes do dispatch. Um commit por item
 
 ## Fase 1 — Dispatch
 
-Três agentes `general-purpose` lançados na mesma mensagem. Cada prompt contém: caminho do worktree, branch, porta, caminho do plano e da spec, regra de donos de arquivos, instrução de usar `superpowers:executing-plans` (tarefa a tarefa, TDD, commits frequentes), de usar o skill `frontend-design` nas tarefas de UI, e de terminar com `npm test`, `npx biome check .`, `npm run build` e verificação no navegador. Cada agente escreve a seção `## Resultado` na sua spec (mesmo formato de `specs/sign-up.md`).
+Três agentes `general-purpose` lançados na mesma mensagem. Cada prompt contém: caminho do worktree, branch, porta, caminho do plano e da spec, regra de donos de arquivos, instrução de usar `superpowers:executing-plans` (tarefa a tarefa, TDD, commits frequentes), de usar o skill `frontend-design` nas tarefas de UI, e de terminar com `npm test`, `npx biome check .`, `npm run build` e verificação no navegador. Cada agente escreve a seção `## Resultado` na sua spec (mesmo formato de `docs/specs/sign-up.md`).
 
 Regra de bloqueio: se um agente precisar alterar um arquivo que não é seu, ele registra a necessidade no relatório final e segue; o orquestrador resolve na integração.
 

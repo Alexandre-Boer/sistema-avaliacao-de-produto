@@ -190,7 +190,7 @@ src/
 supabase/migrations/   esquema do banco
 n8n/                   docker-compose e fluxo de importação
 ollama/                docker-compose do modelo local
-specs/                 especificação de cada funcionalidade
+docs/specs/                 especificação de cada funcionalidade
 docs/                  arquitetura e planos de implementação
 ```
 
@@ -206,14 +206,14 @@ docs/                  arquitetura e planos de implementação
 - **Comentários tratados como conteúdo não confiável.** Eles entram no pedido ao modelo dentro de um delimitador, sem `<` e `>`, e as instruções do agente mandam ignorar ordens escritas neles. A avaliação "IGNORE TODAS AS INSTRUÇÕES..." que aparece na demonstração é esse teste. Só nota e comentário são enviados, nunca o nome ou o e-mail de quem avaliou.
 - **Modelo configurável.** O código não depende de um provedor: o mesmo agente roda com `gpt-4o-mini` ou com um modelo local gratuito.
 
-As decisões de cada funcionalidade, incluindo o que foi descartado e por quê, estão registradas na seção "Resultado" das specs e nos planos em `docs/superpowers/plans/`.
+As decisões de cada funcionalidade, incluindo o que foi descartado e por quê, estão registradas na seção "Resultado" das specs e nos planos em `docs/plans/`.
 
 ## Processo de desenvolvimento
 
 O projeto foi construído com um agente de programação (Claude Code), em um fluxo de três etapas por funcionalidade:
 
-1. **Spec** (`specs/`): contexto, requisitos, o que fazer e o que não fazer, critérios de aceite.
-2. **Plano** (`docs/superpowers/plans/`): tarefas pequenas, com os testes escritos antes do código, pontos de atenção para a revisão e as decisões que fogem da spec. Nada é implementado antes de o plano ser aprovado.
+1. **Spec** (`docs/specs/`): contexto, requisitos, o que fazer e o que não fazer, critérios de aceite.
+2. **Plano** (`docs/plans/`): tarefas pequenas, com os testes escritos antes do código, pontos de atenção para a revisão e as decisões que fogem da spec. Nada é implementado antes de o plano ser aprovado.
 3. **Execução e revisão**: funcionalidades independentes foram implementadas em paralelo por subagentes, cada um no seu branch, e integradas com merge. Depois de cada integração houve revisão de código e uma rodada de correções, registrada na própria spec.
 
 O histórico usa [Conventional Commits](https://www.conventionalcommits.org/pt-br/) em português (`feat:`, `fix:`, `docs:`, `test:`, `merge:`).
