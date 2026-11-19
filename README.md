@@ -189,7 +189,7 @@ src/
     (site)/            pages with the site header: product list and product page
     auth/              sign-in and sign-up pages
     api/v1/            endpoints
-  components/          components by domain (products, feedback, layout, ui)
+  components/          components by domain (auth, products, feedback, layout, ui)
   lib/                 session, password, validation (Zod), Supabase client
   mastra/              AI agent and model selection
   server/              business rules by domain (accounts, products, feedbacks, ai-summary)

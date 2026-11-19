@@ -187,7 +187,7 @@ src/
     (site)/            páginas com o cabeçalho do site: lista e detalhe do produto
     auth/              páginas de login e cadastro
     api/v1/            endpoints
-  components/          componentes por domínio (products, feedback, layout, ui)
+  components/          componentes por domínio (auth, products, feedback, layout, ui)
   lib/                 sessão, senha, validação (Zod), cliente do Supabase
   mastra/              agente de IA e escolha do modelo
   server/              regras de negócio por domínio (accounts, products, feedbacks, ai-summary)
