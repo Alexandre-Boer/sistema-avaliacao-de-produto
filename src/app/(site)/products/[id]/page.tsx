@@ -10,11 +10,14 @@ import {
   FeedbackListSkeleton,
   NewFeedbackSkeleton,
 } from "@/components/feedback/feedback-skeletons";
+import { AiSummary, AiSummarySkeleton } from "@/components/products/ai-summary";
 import { ProductHeader } from "@/components/products/product-header";
 import { getSession } from "@/lib/session";
+import { getAiSummary } from "@/server/ai-summary/get-ai-summary";
 import { hasFeedback } from "@/server/feedbacks/has-feedback";
 import { listFeedbacks } from "@/server/feedbacks/list-feedbacks";
 import { getProductById } from "@/server/products/get-product";
+import type { Product } from "@/server/products/product";
 
 // Título estático: um título por produto exigiria outro boundary dinâmico.
 export const metadata: Metadata = {
@@ -43,6 +46,16 @@ export const instant = false;
  * alternativa documentada é checar o id no `proxy.ts`.
  */
 export const unstable_paramMatching = { id: "blocking" };
+
+/**
+ * Resumo da IA: chega por streaming, sem segurar o cabeçalho nem a lista. Quando
+ * não há resumo (poucas avaliações, IA não configurada ou fora do ar) o bloco
+ * simplesmente não aparece.
+ */
+async function ProductAiSummary({ product }: { product: Product }) {
+  const aiSummary = await getAiSummary(product);
+  return aiSummary ? <AiSummary summary={aiSummary.summary} /> : null;
+}
 
 /** Avaliações do produto: chegam por streaming, depois do cabeçalho. */
 async function ProductFeedbacks({ productId }: { productId: string }) {
@@ -86,6 +99,10 @@ export default async function ProductPage({
   return (
     <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-12 px-6 py-10">
       <ProductHeader product={product} />
+
+      <Suspense fallback={<AiSummarySkeleton />}>
+        <ProductAiSummary product={product} />
+      </Suspense>
 
       <Suspense fallback={<FeedbackListSkeleton />}>
         <ProductFeedbacks productId={product.id} />
