@@ -34,9 +34,9 @@ Executada após a aprovação dos planos e antes do dispatch. Um commit por item
 7. **Layout base e home esqueleto:** grupo de rotas `src/app/(site)/` com `layout.tsx` (renderiza `<SiteHeader />` + `children`), `src/components/layout/site-header.tsx` (placeholder: `Wordmark` + botão "Entrar" → `/auth/sign-in`) e `src/app/(site)/page.tsx` (título "Produtos" + esqueleto). O antigo `src/app/page.tsx` (landing) é removido. As páginas `/auth/*` ficam fora do grupo e mantêm o layout próprio em tela cheia.
    - Isso cumpre os itens "layout base" e "home esqueleto" da spec de sign-in; a Home substitui o esqueleto pela listagem real.
 8. **Worktrees** (fora do OneDrive, para não sincronizar `node_modules`):
-   - `C:\Users\alexa\worktrees\sap-sign-in` (branch `feat/sign-in`, porta 3001)
-   - `C:\Users\alexa\worktrees\sap-home` (branch `feat/home`, porta 3002)
-   - `C:\Users\alexa\worktrees\sap-feedback` (branch `feat/feedback`, porta 3003)
+   - `~/worktrees/sap-sign-in` (branch `feat/sign-in`, porta 3001)
+   - `~/worktrees/sap-home` (branch `feat/home`, porta 3002)
+   - `~/worktrees/sap-feedback` (branch `feat/feedback`, porta 3003)
    - Em cada um: copiar `.env.local` e rodar `npm ci`.
 
 ## Donos de arquivos (regra de não-conflito)

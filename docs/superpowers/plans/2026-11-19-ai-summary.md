@@ -56,7 +56,7 @@
 - [ ] **Step 1:** Ler https://mastra.ai/docs/agents/overview e https://mastra.ai/models; confirmar o id do modelo e que a versão atual do `@mastra/core` aceita o `zod` 4 e o Node 24 do projeto.
 - [ ] **Step 2:** `npm install @mastra/core@latest`. Não instalar pacote do AI SDK: o modelo é indicado pela string `provedor/modelo`.
 - [ ] **Step 3:** Em `next.config.ts`, adicionar `serverExternalPackages: ["@mastra/*"]` (o guia de Next.js do Mastra pede isso porque os pacotes carregam módulos nativos que o bundler não empacota).
-- [ ] **Step 4:** Migração (aplicada via MCP do Supabase no projeto `gouqmibblzioyhikgcrw`):
+- [ ] **Step 4:** Migração (aplicada via MCP do Supabase):
 
 ```sql
 create table public.products_ai_summaries (
@@ -156,6 +156,6 @@ alter table public.products_ai_summaries enable row level security;
 
 ## Execução
 
-Uma única funcionalidade, com tarefas em sequência (cada uma depende da anterior): um subagente em worktree (`C:\Users\alexa\worktrees\sap-ai-summary`, branch `feat/ai-summary`), revisão e integração em `main` com `--no-ff`.
+Uma única funcionalidade, com tarefas em sequência (cada uma depende da anterior): um subagente em worktree (`~/worktrees/sap-ai-summary`, branch `feat/ai-summary`), revisão e integração em `main` com `--no-ff`.
 
 **Pré-requisito do usuário:** uma `OPENAI_API_KEY` em `.env.local`. Sem ela as Tasks 1 a 4 podem ser feitas, mas a verificação real da Task 5 não.
