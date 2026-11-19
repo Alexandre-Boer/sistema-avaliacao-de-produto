@@ -2,7 +2,7 @@
 
 Aplicação web em que qualquer pessoa consulta produtos e lê avaliações, pessoas autenticadas avaliam com nota e comentário, e um agente de IA resume o que os clientes disseram sobre cada produto.
 
-> Projeto do **módulo introdutório da Pós-graduação em Engenharia de IA Aplicada**. Além do produto em si, o objetivo do módulo foi praticar o desenvolvimento orientado a especificações com agentes de IA: cada funcionalidade nasceu de uma spec, virou um plano revisado e só então foi implementada.
+> Projeto do **módulo introdutório da Pós-Graduação em Engenharia de IA da [Coders University](https://www.codersuniversity.com.br/)**, curso com chancela da ESIC Internacional. Além do produto em si, o objetivo do módulo foi praticar o desenvolvimento orientado a especificações com agentes de IA: cada funcionalidade nasceu de uma spec, virou um plano revisado e só então foi implementada.
 
 ![Demonstração: lista de produtos, página do produto com o resumo da IA, login e envio de uma avaliação](docs/assets/demo.gif)
 
@@ -19,6 +19,7 @@ Aplicação web em que qualquer pessoa consulta produtos e lê avaliações, pes
 - [Decisões de projeto](#decisões-de-projeto)
 - [Processo de desenvolvimento](#processo-de-desenvolvimento)
 - [Limitações conhecidas](#limitações-conhecidas)
+- [Licença](#licença)
 - [Autor](#autor)
 
 ## Funcionalidades
@@ -224,8 +225,12 @@ O histórico usa [Conventional Commits](https://www.conventionalcommits.org/pt-b
 - **Sem recuperação de senha e sem confirmação de e-mail.**
 - **O `404` da página do produto usa uma API ainda instável do Next.js** (`unstable_paramMatching`), que pode mudar em uma atualização.
 
+## Licença
+
+Distribuído sob a licença [MIT](LICENSE).
+
 ## Autor
 
 **Alexandre Boer** · [GitHub](https://github.com/Alexandre-Boer)
 
-Projeto desenvolvido para fins de estudo no módulo introdutório da Pós-graduação em Engenharia de IA Aplicada.
+Projeto desenvolvido para fins de estudo no módulo introdutório da Pós-Graduação em Engenharia de IA da Coders University (chancela ESIC Internacional).
