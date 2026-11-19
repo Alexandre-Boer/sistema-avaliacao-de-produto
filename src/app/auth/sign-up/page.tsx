@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { SignUpForm } from "@/app/auth/sign-up/sign-up-form";
+import { SignUpForm } from "@/components/auth/sign-up-form";
 import { EvaluationPreview } from "@/components/brand/evaluation-preview";
 import { Wordmark } from "@/components/brand/wordmark";
 

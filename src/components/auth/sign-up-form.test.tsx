@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { SignUpForm } from "@/app/auth/sign-up/sign-up-form";
+import { SignUpForm } from "@/components/auth/sign-up-form";
 
 const pushMock = vi.fn();
 

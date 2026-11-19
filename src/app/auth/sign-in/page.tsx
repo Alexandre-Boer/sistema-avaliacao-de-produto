@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { SignInForm } from "@/app/auth/sign-in/sign-in-form";
+import { SignInForm } from "@/components/auth/sign-in-form";
 import { EvaluationPreview } from "@/components/brand/evaluation-preview";
 import { Wordmark } from "@/components/brand/wordmark";
 
